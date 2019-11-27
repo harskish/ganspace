@@ -1,0 +1,8 @@
+[submodule "stylegan/stylegan_tf"]
+	path = models/stylegan/stylegan_tf
+	url = https://github.com/NVlabs/stylegan.git
+	ignore = untracked
+[submodule "stylegan2/stylegan2-pytorch"]
+	path = models/stylegan2/stylegan2-pytorch
+	url = https://github.com/harskish/stylegan2-pytorch.git
+	ignore = untracked

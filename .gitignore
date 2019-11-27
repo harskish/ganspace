@@ -1,0 +1,7 @@
+**/__pycache__
+**/.vscode
+**/.DS_Store
+cache/
+out/
+checkpoints/
+**/.ipynb_checkpoints/

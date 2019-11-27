@@ -1,0 +1,6 @@
+Exclusive Copyright 2020, Erik Härkönen
+
+This code is released for the purpose of academic reproducibility.
+No license is granted for derivative works or other uses, besides non-commercial experimentation.
+
+We are working on adding a real non-commercial license.
