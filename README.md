@@ -8,7 +8,7 @@
 > **GANSpace: Discovering Interpretable GAN Controls**<br>
 > Erik Härkönen<sup>1,2</sup>, Aaron Hertzmann<sup>2</sup>, Jaakko Lehtinen<sup>1,3</sup>, Sylvain Paris<sup>2</sup><br>
 > <sup>1</sup>Aalto University, <sup>2</sup>Adobe Research, <sup>3</sup>NVIDIA<br>
-> https://arxiv.org/abs/TODO
+> https://arxiv.org/abs/2004.02546
 >
 > <p align="justify"><b>Abstract:</b> <i>This paper describes a simple technique to analyze Generative Adversarial Networks (GANs) and create interpretable controls for image synthesis, such as change of viewpoint, aging, lighting, and time of day. We identify important latent directions based on Principal Components Analysis (PCA) applied in activation space. Then, we show that interpretable edits can be defined based on layer-wise application of these edit directions. Moreover, we show that BigGAN can be controlled with layer-wise inputs in a StyleGAN-like manner. A user may identify a large number of interpretable controls with these mechanisms. We demonstrate results on GANs from various datasets.</i></p>
 > <p align="justify"><b>Video:</b> 
