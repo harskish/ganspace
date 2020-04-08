@@ -276,9 +276,6 @@ class StyleGAN(BaseModel):
             'abstract': 512,
             'anime': 512,
             'ukiyo-e': 512,
-
-            # ArtBreeder
-            'landscapes': 1024
         }
 
         assert self.outclass in configs, \
@@ -311,7 +308,6 @@ class StyleGAN(BaseModel):
             'abstract': 'https://mega.nz/#!vCQyHQZT!zdeOg3VvT4922Z2UfxO51xgAfJD-NAK2nW7H_jMlilU',
             'anime': 'https://mega.nz/#!vawjXISI!F7s13yRicxDA3QYqYDL2kjnc2K7Zk3DwCIYETREmBP4',
             'ukiyo-e': 'https://drive.google.com/uc?id=1CHbJlci9NhVFifNQb3vCGu6zw4eqzvTd',
-            'landscapes': 'https://drive.google.com/uc?export=download&id=1wTIW7JcNbDNmRdjhh_MPcAeV1v8VHEiW'
         }
 
         urls_torch = {
@@ -321,7 +317,6 @@ class StyleGAN(BaseModel):
             'cars': 'https://drive.google.com/uc?export=download&id=1aaUXHRHjQ9ww91x4mtPZD0w50fsIkXWt',
             'cats': 'https://drive.google.com/uc?export=download&id=1JzA5iiS3qPrztVofQAjbb0N4xKdjOOyV',
             'wikiart': 'https://drive.google.com/uc?export=download&id=1fN3noa7Rsl9slrDXsgZVDsYFxV0O08Vx',
-            'landscapes': 'https://drive.google.com/uc?export=download&id=1rrKkVaN4J0qk7o_YscI0ruxZ98eUPXPH'
         }
 
         if not checkpoint.is_file():
