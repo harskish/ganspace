@@ -101,11 +101,9 @@ We would like to thank:
 
 ## License
 
-This code is released for the purpose of academic reproducibility.
-No license is granted for derivative works or other uses, besides non-commercial experimentation. <b>We are working on adding a real non-commercial license.</b>
-
+The code of this repository is released under the [Apache 2.0](LICENSE) license.<br>
 The directory `netdissect` is a derivative of the [GAN Dissection][gandissect] project, and is provided under the MIT license.<br>
-The directory `models/biggan` is provided under the MIT license.
+The directories `models/biggan` and `models/stylegan2` are provided under the MIT license.
 
 
 [biggan_pytorch]: https://github.com/huggingface/pytorch-pretrained-BigGAN
