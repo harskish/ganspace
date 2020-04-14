@@ -93,7 +93,7 @@ It is possible to import trained StyleGAN and StyleGAN2 weights from TensorFlow 
 We would like to thank:
 
 * The authors of the PyTorch implementations of [BigGAN][biggan_pytorch], [StyleGAN][stylegan_pytorch], and [StyleGAN2][stylegan2_pytorch]:<br>Thomas Wolf, Piotr Bialecki, Thomas Viehmann, and Kim Seonghyeon.
-* Joel Simon from ArtBreeder for providing us with the landscape model for StyleGAN.
+* Joel Simon from ArtBreeder for providing us with the landscape model for StyleGAN.<br>(unfortunately we cannot distribute this model)
 * David Bau and colleagues for the excellent [GAN Dissection][gandissect] project.
 * Justin Pinkney for the [Awesome Pretrained StyleGAN][pretrained_stylegan] collection.
 * Toumas Kynkäänniemi for giving us a helping hand with the experiments.
