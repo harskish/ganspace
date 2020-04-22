@@ -85,7 +85,7 @@ It is possible to import trained StyleGAN and StyleGAN2 weights from TensorFlow 
 2. Modify methods `__init__()`, `load_model()` in `models/wrappers.py` under class StyleGAN.
 
 ### StyleGAN2
-1. Follow instructions in stylegan2-pytorch's [instructions][stylegan2_pytorch].
+1. Follow the instructions [here](https://github.com/harskish/stylegan2-pytorch/blob/master/README.md#convert-weight-from-official-checkpoints). Make sure to use the forked repository in the conversion for compatibility reasons.
 2. Save the converted checkpoint as `checkpoints/stylegan2/<dataset>_<resolution>.pt`.
 3. Modify methods `__init__()`, `download_checkpoint()` in `models/wrappers.py` under class StyleGAN2.
 
@@ -96,7 +96,7 @@ We would like to thank:
 * Joel Simon from ArtBreeder for providing us with the landscape model for StyleGAN.<br>(unfortunately we cannot distribute this model)
 * David Bau and colleagues for the excellent [GAN Dissection][gandissect] project.
 * Justin Pinkney for the [Awesome Pretrained StyleGAN][pretrained_stylegan] collection.
-* Toumas Kynkäänniemi for giving us a helping hand with the experiments.
+* Tuomas Kynkäänniemi for giving us a helping hand with the experiments.
 * The Aalto Science-IT project for providing computational resources for this project.
 
 ## License
