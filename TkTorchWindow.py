@@ -62,12 +62,14 @@ class TorchImageView(OpenGLFrame):
     def __init__(self, root = None, show_fps=True, **kwargs):
         self.root = root or tk.Tk()
         self.width = kwargs.get('width', 512)
-        self.width = kwargs.get('height', 512)
+        self.height = kwargs.get('height', 512)
         self.show_fps = show_fps
         self.pycuda_initialized = False
         self.animate = 0 # disable internal main loop
         OpenGLFrame.__init__(self, root, **kwargs)
 
+    # Called by pyopengltk.BaseOpenGLFrame
+    # when the frame goes onto the screen
     def initgl(self):
         if not self.pycuda_initialized:
             self.setup_gl(self.width, self.height)
