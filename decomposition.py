@@ -136,9 +136,10 @@ def linreg_lstsq(comp_np, mean_np, stdev_np, inst, config):
 
 def regression(comp, mean, stdev, inst, config):
     # Sanity check: verify orthonormality
-    diag = np.diag(np.dot(comp, comp.T))
-    if not np.allclose(diag, np.ones_like(diag)):
-        print('WARNING: Computed basis is not orthonormal!')
+    M = np.dot(comp, comp.T)
+    if not np.allclose(M, np.identity(M.shape[0])):
+        det = np.linalg.det(M)
+        print(f'WARNING: Computed basis is not orthonormal (determinant={det})')
 
     return linreg_lstsq(comp, mean, stdev, inst, config)
 
