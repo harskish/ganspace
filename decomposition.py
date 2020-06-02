@@ -23,6 +23,7 @@ import argparse
 import torch
 import json
 from types import SimpleNamespace
+import scipy
 from scipy.cluster.vq import kmeans
 from tqdm import trange
 from netdissect.nethook import InstrumentedModel
@@ -125,8 +126,11 @@ def linreg_lstsq(comp_np, mean_np, stdev_np, inst, config):
         Z[i*B:(i+1)*B] = z.detach().cpu().numpy().reshape(B, -1)
 
     # Solve least squares fit
-    print('Performing least squares fit')
-    M_t = np.linalg.lstsq(A, Z, rcond=None)[0] # torch.lstsq(Z, A)[0][:n_comp, :]
+
+    # gelsd = divide-and-conquer SVD; good default
+    # gelsy = complete orthogonal factorization; sometimes faster
+    # gelss = SVD; slow but less memory hungry
+    M_t = scipy.linalg.lstsq(A, Z, lapack_driver='gelsd')[0] # torch.lstsq(Z, A)[0][:n_comp, :]
     
     # Solution given by rows of M_t
     Z_comp = M_t[:n_comp, :]
