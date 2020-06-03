@@ -55,7 +55,7 @@ def _create_strip_batch_sigma(inst, mode, layer, latents, x_comp, z_comp, act_st
     lep_padded = ((num_frames - 1) // B + 1) * B
     sigma_range = np.linspace(-sigma, sigma, num_frames)
     sigma_range = np.concatenate([sigma_range, np.zeros((lep_padded - num_frames))])
-    sigma_range = torch.from_numpy(sigma_range).float().to(x_comp.device)
+    sigma_range = torch.from_numpy(sigma_range).float().to(inst.model.device)
     normalize = lambda v : v / torch.sqrt(torch.sum(v**2, dim=-1, keepdim=True) + 1e-8)
 
     for i_batch in range(lep_padded // B):
