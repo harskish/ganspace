@@ -98,8 +98,10 @@ def _create_strip_batch_sigma(inst, mode, layer, latents, x_comp, z_comp, act_st
                 if img_batch.ndim == 3:
                     img_batch = np.expand_dims(img_batch, axis=0)
                     
-                for img in img_batch:
-                    batch_frames[i_lat].append(img)
+                for j, img in enumerate(img_batch):
+                    idx = i_batch*B + j
+                    if idx < num_frames:
+                        batch_frames[i_lat].append(img)
 
     return batch_frames
 
