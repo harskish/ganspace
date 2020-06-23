@@ -23,8 +23,9 @@ Install included dependencies (downloaded from https://www.lfd.uci.edu/~gohlke/p
 5. Compile and install: `make install`
 6. Install Glumpy: `pip install setuptools cython glumpy`
 
-### StyleGAN2
-The bundled StyleGAN2 model requires additional setup steps due to the custom CUDA kernels involved.
+### StyleGAN2 setup (optional)
+StyleGAN2 contains custom CUDA kernels for improved performance.<br>
+Less performant native PyTorch fallbacks are used by default.
 1. Install CUDA toolkit (match the version in environment.yml)
 2. On Windows: install and open 'x64 Native Tools Command Prompt for VS 2017'
 3. `conda activate ganspace`
