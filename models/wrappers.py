@@ -497,9 +497,21 @@ class ProGAN(BaseModel):
         noise = zdataset.z_sample_for_model(self.model, n_samples, seed=seed)[...]
         return noise.to(self.device)
 
+    def forward(self, x):
+        if isinstance(x, list):
+            assert len(x) == 1, "ProGAN only supports a single global latent"
+            x = x[0]
+        
+        out = self.model.forward(x)
+        return 0.5*(out+1)
+
     # Run model only until given layer
     def partial_forward(self, x, layer_name):
         assert isinstance(self.model, torch.nn.Sequential), 'Expected sequential model'
+
+        if isinstance(x, list):
+            assert len(x) == 1, "ProGAN only supports a single global latent"
+            x = x[0]
 
         x = x.view(x.shape[0], x.shape[1], 1, 1)
         for name, module in self.model._modules.items(): # ordered dict
