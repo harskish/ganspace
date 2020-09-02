@@ -24,13 +24,13 @@ This repository includes versions of BigGAN, StyleGAN, and StyleGAN2 modified to
 **Interactive model exploration**
 ```
 # Explore BigGAN-deep husky
-python interactive.py --model=BigGAN-512 --class=husky --layer=generator.gen_z -n=1000000
+python interactive.py --model=BigGAN-512 --class=husky --layer=generator.gen_z -n=1_000_000
 
 # Explore StyleGAN2 ffhq in W space
-python interactive.py --model=StyleGAN2 --class=ffhq --layer=style --use_w -n=1000000 -b=10000
+python interactive.py --model=StyleGAN2 --class=ffhq --layer=style --use_w -n=1_000_000 -b=10_000
 
 # Explore StyleGAN2 cars in Z space
-python interactive.py --model=StyleGAN2 --class=car --layer=style -n=1000000 -b=10000
+python interactive.py --model=StyleGAN2 --class=car --layer=style -n=1_000_000 -b=10_000
 ```
 ```
 # Apply previously saved edits interactively
@@ -40,10 +40,10 @@ python interactive.py --model=StyleGAN2 --class=ffhq --layer=style --use_w --inp
 **Visualize principal components**
 ```
 # Visualize StyleGAN2 ffhq W principal components
-python visualize.py --model=StyleGAN2 --class=ffhq --use_w --layer=style -b=10000
+python visualize.py --model=StyleGAN2 --class=ffhq --use_w --layer=style -b=10_000
 
 # Create videos of StyleGAN wikiart components (saved to ./out)
-python visualize.py --model=StyleGAN --class=wikiart --use_w --layer=g_mapping -b=10000 --batch --video
+python visualize.py --model=StyleGAN --class=wikiart --use_w --layer=g_mapping -b=10_000 --batch --video
 ```
 
 **Options**
@@ -61,15 +61,14 @@ Command line paramaters:
 ```
 
 ## Reproducibility
-All the figures presented in the paper can be recreated using the included Jupyter notebooks:
+All figures presented in the main paper can be recreated using the included Jupyter notebooks:
 * Figure 1: `figure_teaser.ipynb`
 * Figure 2: `figure_pca_illustration.ipynb`
 * Figure 3: `figure_pca_cleanup.ipynb`
-* Figure 4: `figure_steerability_comp.ipynb`
-* Figure 5: `figure_biggan_edit_transferability.ipynb`
-* Figure 6: `figure_biggan_style_mixing.ipybb`
-* Figure 7: `figure_biggan_style_resampling.ipynb`
-* Figure 8: `figure_edit_zoo.ipynb`
+* Figure 4: `figure_style_content_sep.ipynb`
+* Figure 5: `figure_supervised_comp.ipynb`
+* Figure 6: `figure_biggan_style_resampling.ipynb`
+* Figure 7: `figure_edit_zoo.ipynb`
 
 ## Known issues
 * The interactive viewer sometimes freezes on startup on Ubuntu 18.04. The freeze is resolved by clicking on the terminal window and pressing the control key. Any insight into the issue would be greatly appreciated!
