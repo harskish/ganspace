@@ -61,7 +61,7 @@ class Config:
         parser.add_argument('--video', dest='make_video', action='store_true', help='Generate output videos (MP4s)')
         parser.add_argument('--batch', dest='batch_mode', action='store_true', help="Don't open windows, instead save results to file")
         parser.add_argument('-b', dest='batch_size', type=int, default=None, help='Minibatch size, leave empty for automatic detection')
-        parser.add_argument('-c', dest='components', type=int, default=128, help='Number of components to keep')
+        parser.add_argument('-c', dest='components', type=int, default=80, help='Number of components to keep')
         parser.add_argument('-n', type=int, default=300_000, help='Number of examples to use in decomposition')
         parser.add_argument('--use_w', action='store_true', help='Use W latent space (StyleGAN(2))')
         parser.add_argument('--sigma', type=float, default=2.0, help='Number of stdevs to walk in visualize.py')
