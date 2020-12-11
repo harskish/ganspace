@@ -85,7 +85,7 @@ It is possible to import trained StyleGAN and StyleGAN2 weights from TensorFlow 
 2. Modify methods `__init__()`, `load_model()` in `models/wrappers.py` under class StyleGAN.
 
 ### StyleGAN2
-1. Follow the instructions [here](https://github.com/harskish/stylegan2-pytorch/blob/master/README.md#convert-weight-from-official-checkpoints). Make sure to use the forked repository in the conversion for compatibility reasons.
+1. Follow the instructions in [models/stylegan2/stylegan2-pytorch/README.md](https://github.com/harskish/stylegan2-pytorch/blob/master/README.md#convert-weight-from-official-checkpoints). Make sure to use the fork in this specific folder when converting the weights for compatibility reasons.
 2. Save the converted checkpoint as `checkpoints/stylegan2/<dataset>_<resolution>.pt`.
 3. Modify methods `__init__()`, `download_checkpoint()` in `models/wrappers.py` under class StyleGAN2.
 
