@@ -99,6 +99,16 @@ We would like to thank:
 * Tuomas Kynkäänniemi for giving us a helping hand with the experiments.
 * The Aalto Science-IT project for providing computational resources for this project.
 
+## Citation
+```
+@inproceedings{härkönen2020ganspace,
+  title     = {GANSpace: Discovering Interpretable GAN Controls},
+  author    = {Erik Härkönen and Aaron Hertzmann and Jaakko Lehtinen and Sylvain Paris},
+  booktitle = {Proc. NeurIPS},
+  year      = {2020}
+}
+```
+
 ## License
 
 The code of this repository is released under the [Apache 2.0](LICENSE) license.<br>
