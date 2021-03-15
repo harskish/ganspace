@@ -1,10 +1,11 @@
 ## Setup
 1. Install anaconda or miniconda
-2. Create environment: `conda create -n ganspace python=3.7`
-3. Activate environment: `conda activate ganspace`
-4. Install dependencies: `conda env update -f environment.yml --prune`
-5. Setup submodules: `git submodule update --init --recursive`
-6. Run command `python -c "import nltk; nltk.download('wordnet')"`
+2. Install git, then clone respository: `git clone https://github.com/harskish/ganspace/`
+3. Create environment: `conda create -n ganspace python=3.7`
+4. Activate environment: `conda activate ganspace`
+5. Install dependencies: `conda env update -f environment.yml --prune`
+6. Setup submodules: `git submodule update --init --recursive`
+7. Run command `python -c "import nltk; nltk.download('wordnet')"`
 
 ### Interactive viewer
 The interactive viewer (<i>interactive.py</i>) has the following dependencies:
