@@ -29,7 +29,7 @@ from tqdm import trange
 from netdissect.nethook import InstrumentedModel
 from config import Config
 from estimators import get_estimator
-from models import get_instrumented_model
+from ganmodels import get_instrumented_model
 
 SEED_SAMPLING = 1
 SEED_RANDOM_DIRS = 2

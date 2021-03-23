@@ -43,6 +43,6 @@ def ganspace_view(request, model_name):
     context = {
         "component_list": range(5),
     }
-    return render(request,  'admin_ganspace_viewer.html', context)
+    return render(request,'admin_ganspace_viewer.html', context)
 
 #User Views

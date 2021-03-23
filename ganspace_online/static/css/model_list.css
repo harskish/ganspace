@@ -26,7 +26,16 @@
     display:inline-block
 }
 
-button{
+.modify_button{
+    text-decoration: none;
+    color: initial;
+}
+
+.modify_button:hover{
+    color: white;
+}
+
+.button{
     padding-left: 10px;
     margin: 0;
     border:0;
@@ -36,16 +45,16 @@ button{
     background-color: white;
 }
 
-button:hover{
+.button:hover{
     background-color:rgb(145, 144, 144);
     color: white;
 }
 
-button:focus{
+.button:focus{
     outline: 0;
 }
 
-button:active{
+.button:active{
     background-color: rgb(175, 174, 174);
     /* border:0; */
     color: white;
@@ -58,5 +67,3 @@ button:active{
     margin-left: var(--left_margin);
     position: relative;
 }
-
-

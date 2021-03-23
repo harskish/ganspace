@@ -12,11 +12,10 @@
     <div class="model_list">
         <div id="model" class="inline"> {{ model }} </div>
         <div id= "buttons" class="inline">
-            {% comment %} <button><a href = "{% url 'm_name' %}"> Modify Parameters </a></button> {% endcomment %}
-            <button> Modify Parameters </button>
-            <button > Hide Model </button>
-            <button > Delete Model </button>
-            <button > Button </button>
+            <button class="button"><a class="modify_button" href = "{% url 'm_name' model %}"> Modify Parameters </a></button>
+            <button class="button"> Hide Model </button>
+            <button class="button"> Delete Model </button>
+            <button class="button"> Button </button>
         </div>
         
     </div><br>

@@ -17,6 +17,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 
+print(BASE_DIR)
 #STATIC_ROOT = 'static/'
 
 STATIC_URL = '/static/'
@@ -33,7 +34,7 @@ STATICFILES_DIRS = [
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = ''
+SECRET_KEY = 'jk*q0dxyb=h72)p-4051e(hx+0gz$us+t^0fr0=_m^^8==7d$&'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
