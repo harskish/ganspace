@@ -1,0 +1,209 @@
+:root{
+    --canvas_dimension: 90vh;
+    --slider_handle_radius: 15px;
+    --slider_handle_color: rgb(180, 180, 180);
+}
+/* 
+#image_canvas{
+    margin-left: 5vw; 
+    width: var(--canvas_dimension); 
+    height: var(--canvas_dimension);
+    border:1px solid #000000;
+} */
+
+.image_window{
+    float:left;
+    margin-top:3vh;
+    margin-left: 5vw; 
+    width: var(--canvas_dimension); 
+    height: var(--canvas_dimension);
+}
+
+#dummy_image{
+    width: 100%; 
+    height: 100%;
+    border:1px solid #000000;
+}
+
+
+.controllers{
+    float:right;
+    margin-right: 5vw;
+    width:40vw;
+    margin-top:3vh;
+}
+
+.layer_slider_window{
+    width:100%
+}
+
+.layer_start_slider{
+    display: inline-block;
+    width:100%;
+    padding-bottom: 2vh;
+}
+
+.layer_end_slider{
+    display: inline-block;
+    width:100%;
+    padding-bottom: 2vh;
+}
+
+.layer_name{
+    float:left;
+    width: 20%;
+}
+
+/* The slider itself */
+.layer_slider {
+    margin-top: 1vh;
+    margin-bottom: 2vh;
+    float:right;
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 75%; /* Full-width */
+    height: 3px; /* Specified height */
+    background: #d3d3d3; /* Grey background */
+    outline: none; /* Remove outline */
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+}
+.component_slider_window{
+    overflow-y:scroll;
+    overflow-x: hidden;
+    width:100%;
+    height: 50vh;
+    margin-bottom: 5vh;
+}
+.component_sliders{
+    padding-bottom: 3vh;
+}
+
+.component_name{
+    width: 18%;
+    float:left;
+}
+
+
+/*Component sliders*/
+.component_slider{
+    margin-top: 1vh;
+    margin-bottom: 2vh;
+    /* margin-left:25vh; */
+    float:right;
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 64%; /* Full-width */
+    height: 3px; /* Specified height */
+    background: #d3d3d3; /* Grey background */
+    outline: none; /* Remove outline */
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+}
+
+.save_button{
+    width:10%;
+    margin: 0;
+    border:0;
+    background-color: white;
+    float:right;
+}
+
+.reset_button{
+    width:100%;
+    height:100%;
+    margin: 0;
+    border:0;
+    background-color: rgb(236, 234, 234);
+    margin-bottom: 3vh;
+}
+
+.update_seed_window{
+    width:100%;
+    margin-bottom: 2vh;
+}
+
+.seed_value{
+    float:right;
+}
+
+.update_button{
+    width:30%;
+    height:100%;
+    margin: 0;
+    border:0;
+    background-color: rgb(236, 234, 234);
+    margin-bottom: 3vh;
+    float:right;
+    margin-left:5px;
+}
+
+.resample_button{
+    width:30%;
+    height:100%;
+    margin: 0;
+    border:0;
+    background-color: rgb(236, 234, 234);
+    margin-bottom: 3vh;
+    float:left;
+}
+
+.button:hover{
+    background-color:rgb(145, 144, 144);
+    color: white;
+}
+
+.button:focus{
+    outline: 0;
+}
+
+.button:active{
+    background-color: rgb(107, 107, 107);
+    color: white;
+}
+
+.batch_size_window{
+    height:3vh;
+    margin-bottom: 3vh;
+}
+
+.batch_slider {
+    margin-top: 1vh;
+    margin-bottom: 2vh;
+    float:right;
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 75%; /* Full-width */
+    height: 3px; /* Specified height */
+    background: #d3d3d3; /* Grey background */
+    outline: none; /* Remove outline */
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+}
+
+/* Mouse-over effects */
+.slider:hover {
+    opacity: 1; /* Fully shown on mouse-over */
+}
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    border-radius: 50%; 
+    width: var(--slider_handle_radius); /* Set a specific slider handle width */
+    height: var(--slider_handle_radius); /* Slider handle height */
+    background: var(--slider_handle_color);
+    cursor: pointer; /* Cursor on hover */
+}
+
+.slider::-moz-range-thumb {
+    border-radius: 50%; 
+    width: var(--slider_handle_radius); /* Set a specific slider handle width */
+    height: var(--slider_handle_radius); /* Slider handle height */
+    background: var(--slider_handle_color);
+    cursor: pointer; /* Cursor on hover */
+}

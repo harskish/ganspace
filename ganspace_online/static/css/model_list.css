@@ -1,0 +1,62 @@
+:root{
+    --left_margin: 20%;
+    --content_width:55%;
+}
+.model_list{
+    padding-top: 3%;
+    margin-left: var(--left_margin);
+    padding-bottom: 20px;
+    height: 0;
+    width: var(--content_width);
+}
+
+#model{
+    display: inline-block;
+    text-align: left;
+    /* float:left;
+    padding-right: 10px; */
+}
+
+#buttons{
+    float:right;
+    /* position: relative; */
+}
+
+.inline{
+    display:inline-block
+}
+
+button{
+    padding-left: 10px;
+    margin: 0;
+    border:0;
+    border-left:1px;
+    border-left-style: solid;
+    border-color: rgb(145, 144, 144);
+    background-color: white;
+}
+
+button:hover{
+    background-color:rgb(145, 144, 144);
+    color: white;
+}
+
+button:focus{
+    outline: 0;
+}
+
+button:active{
+    background-color: rgb(175, 174, 174);
+    /* border:0; */
+    color: white;
+}
+
+.line_a {
+    border-bottom: 1px solid rgb(204, 204, 204);
+    width: var(--content_width);
+    /* max-width: 12px; */
+    margin-left: var(--left_margin);
+    position: relative;
+}
+
+

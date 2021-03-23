@@ -1,0 +1,28 @@
+{% extends 'admin_base.html' %}
+
+
+{% block content %}
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/model_list.css' %}">
+
+    <div id="main">
+    
+    {% for model in model_list %}
+    <div class="model_list">
+        <div id="model" class="inline"> {{ model }} </div>
+        <div id= "buttons" class="inline">
+            {% comment %} <button><a href = "{% url 'm_name' %}"> Modify Parameters </a></button> {% endcomment %}
+            <button> Modify Parameters </button>
+            <button > Hide Model </button>
+            <button > Delete Model </button>
+            <button > Button </button>
+        </div>
+        
+    </div><br>
+    <div class = "line_a"> </div>
+    
+    {% endfor %}
+
+    </div>
+{% endblock %}

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+        <meta charset ="utf-8">
+        <title> GANSpace Online </title>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'css/page_style.css' %}">
+    </head>
+
+    <body>
+        <!-- Navigation Bar -->
+        <nav id="sidenav">
+            <ul class="admin-menu">
+                <h4> Administrative </h4>
+                <li><a href="{% url 'manage_users'  %}">Manage Users</a></li>
+                <li><a href="{% url 'guides'  %}">Guides</a></li>
+                <li><a href="{% url 'account'  %}">Account</a></li>
+            </ul>
+            {% comment %} <hr class="line"></hr> {% endcomment %}
+            <ul class="ganspace-menu">
+                <h4> Ganspace Menu </h4>
+                <li><a href="{% url 'data'  %}">Data</a></li>
+                <li><a href="{% url 'new_models'  %}">New Models</a></li>
+                <li><a id="models" href="{% url 'models'  %}">Models</a></li>
+                <li><a href="{% url 'user_gallery'  %}">User Gallery</a></li>
+                
+            </ul>
+        </nav>
+
+        <div class="main">
+            {% block content %}
+            <h1> {{ "edit me" }} </h1>
+            {% endblock %}
+        </div>
+
+    </body>
+</html>
+
