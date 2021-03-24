@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.http import JsonResponse
 from .models import *
+from .exporter_driver import *
 
 # Create your views here.
 def home_view(request, *args, **kwargs):
@@ -40,8 +42,23 @@ def user_gallery_view(request, *args, **kwargs):
 
 def ganspace_view(request, model_name):
     model = ganspace_model.objects.get(className = model_name)
+
+    # seed = request.POST.get('seed')
+    # layer_start = request.POST.get('layer_start')
+    # print(seed, layer_start)
+
+    #print(request.POST.get('layer_start'))
+
+    if request.method == 'POST' and request.is_ajax():
+        layer_start = request.POST.get('layer_start')
+        layer_end = request.POST.get('layer_end')
+        component_list = request.POST.getlist('component_sliders[]')
+        sendDataToExporter(layer_start, layer_end, component_list)
+        
+
+
     context = {
-        "component_list": range(5),
+        "component_list": range(10),
     }
     return render(request,'admin_ganspace_viewer.html', context)
 

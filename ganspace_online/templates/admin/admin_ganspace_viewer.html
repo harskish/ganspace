@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/ganspace_viewer.css' %}">
     </head>
@@ -10,32 +11,37 @@
 
     <div>
         <div class = "image_window">
-            <img id ="dummy_image" src = "{% static 'media/test.jpg'%}"></img>
-            {% comment %} <canvas id="image_canvas"></canvas> {% endcomment %}
-            
-            {% comment %} <script src="{% static 'javascript/image_renderer.js' %}"></script> {% endcomment %}
+            {% comment %} <img id ="dummy_image" src = "{% static 'media/test.jpg'%}"></img> {% endcomment %}
+            <canvas id="image_canvas"></canvas>
+            <script> img_src =  "{% static 'media/test.jpg'%}" </script>
+            <script src="{% static 'javascript/image_renderer.js' %}"></script> 
         </div>
 
         <div class = "controllers">
-            
+        {% csrf_token %}
             <div class = "layer_slider_window">
                 <div class = "layer_start_slider">
-                    <input type="range" min="1" max="100" value="50" class="layer_slider slider">
+                    <input type="range" min="1" max="100" value="50" class="layer_slider slider" id='layer_start' name="layer_start" >
+                    <span class="slider_value" id = "layer_start_value" ></span>
                     <div class = "layer_name">Layer Start</div>
                 </div>
 
                 <div class = "layer_end_slider">
-                    <input type="range" min="1" max="100" value="50" class="layer_slider slider">
+                    <input type="range" min="1" max="100" value="50" class="layer_slider slider" name="layer_end" id ="layer_end">
+                    <span class="slider_value" id = "layer_end_value"></span>
                     <div class = "layer_name">Layer End</div>
                 </div>
             </div>
+           
 
             <div class = "component_slider_window">
                 {% for comp_number in component_list %}
                 <div class = "component_sliders">
-                    <div class = "component_name">Component {{comp_number}}</div>
+                    {% comment %} <div class = "component_name" id="component_name">Component {{comp_number}}</div> {% endcomment %}
+                    <div class = "component_name">Component {{comp_number}}</div> 
                     <button class = "save_button button">Save</button>
-                    <input type="range" min="1" max="100" value="50" class="component_slider slider">
+                    <input type="range" min="1" max="100" value="50" class="component_slider slider" id="component_{{comp_number}}" name ="component_slider">
+                    <span class="slider_value" id = "component_{{comp_number}}_value"></span>
                 </div><br>
                 {% endfor %}
             </div>
@@ -47,23 +53,27 @@
                 </div>
                 
                 <div class = "batch_size_window">
-                    <input type="range" min="1" max="100" value="50" class="batch_slider slider">
+                    <form method = 'POST'>
+                    {% csrf_token %}
+                    <input type="range" min="1" max="100" value="50" class="batch_slider slider" name="batch_size">
                     <div class = "batch_size">Batch Size</div>
+                    </form>
                 </div>
 
                 <div class = "update_seed_window">
-                    
+                    <form method = 'POST'>
+                    {% csrf_token %}
                     <button class = "update_button button">Update Seed</button>
-                    <input type = "text" class="seed_value">
-
+                    <input type = "text" class="seed_value" name = "seed">
+                    </form>
                 </div>
 
                 <div class = "resample_latent_window">
                     <button class = "resample_button button">Resample Latent</button>
                 </div>
-
             </div>
-        <div>
+        <script src="{% static 'javascript/sliders.js' %}"></script>
+        </div>
     </div>
     
     </body>
