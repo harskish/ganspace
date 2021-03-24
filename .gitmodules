@@ -9,3 +9,6 @@
 [submodule "ganmodels/stylegan2/stylegan2-pytorch"]
 	path = ganmodels/stylegan2/stylegan2-pytorch
 	url = https://github.com/harskish/stylegan2-pytorch.git
+[submodule "ganmodels/stylegan/stylegan"]
+	path = ganmodels/stylegan/stylegan
+	url = https://github.com/NVlabs/stylegan.git
