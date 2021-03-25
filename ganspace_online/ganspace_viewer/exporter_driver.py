@@ -1,19 +1,77 @@
 import sys
-sys.path.insert(1, '/Users/duongp/ganspace-online') #TODO change this so that it works anywhere
+import zmq 
+import json
+
+ TODO change this so that it works anywhere
 from export import GanModel
-#from django import forms
+from django import forms
 
-#car = GanModel(model='StyleGAN2', class_name='car', layer='style', n=1_000_000, b=10_000)
+car = GanModel(model='StyleGAN2', class_name='car', layer='style', n=1_000_000, b=10_000)
 
-# class ganspace_state(forms.Form):
-#     model_name = forms.CharField(label = 'model_name', max_length=50)
-#     layer_start_slider_value = forms.IntegerField()
-#     layer_end_slider_value = forms.IntegerField()
+class ganspace_state(forms.Form):
+    model_name = forms.CharField(label = 'model_name', max_length=50)
+    layer_start_slider_value = forms.IntegerField()
+    layer_end_slider_value = forms.IntegerField()
 
 
 def sendDataToExporter(layer_start, layer_end, component_list):
     print()
-    print('layer start', layer_start)
-    print('layer end', layer_end)
+    # print('layer start', layer_start)
+    # print('layer end', layer_end)
     for i in range(len(component_list)):
-        print('Component',i,component_list[i])
+        # print('Component',i,component_list[i])
+        component_list[i] = float(component_list[i])
+
+    context = zmq.Context()
+
+    socket = context.socket(zmq.REQ)
+    socket.connect("tcp://ip-172-31-24-131.us-east-2.compute.internal:5555")
+
+    socket
+
+    model = 'car'
+    seed = '0'
+
+    js = {
+        "model": model,
+        "seed": int(seed),
+        "slider_values": component_list
+    }
+
+    socket.send_json(json.dumps(js))
+
+    filename = socket.recv_string()
+    print(filename)
+
+    return filename
+
+
+# from PIL import Image
+# from pathlib import Path
+# from os import sys
+# import os.path
+# from time import sleep
+# sys.path.insert(1, '/Users/duongp/ganspace-online')
+    
+# def sendDataToExporter(layer_start, layer_end, component_list):
+#     print()
+#     print('layer start', layer_start)
+#     print('layer end', layer_end)
+#     for i in range(len(component_list)):
+#         print('Component',i,component_list[i])
+    
+#     value = float(component_list[0])*10
+
+#     path = os.path.join(os.path.dirname(os.path.dirname(__file__)),'static/media/Images','shoe_even.jpg')
+#     even = Image.open(path)
+#     path = os.path.join(os.path.dirname(os.path.dirname(__file__)),'static/media/Images','shoe_odd.jpg')
+#     odd = Image.open(path)
+#     path = os.path.join(os.path.dirname(os.path.dirname(__file__)),'static/media/Images','test.jpg')
+#     if (int(value) % 2 == 0):
+#         even.save(path)
+#     else:
+#         odd.save(path)
+#     sleep(0.1)
+    
+
+

@@ -30,7 +30,7 @@ for(var i=0; i<(sliders.length); i++) {
         }
 
 
-    //Update sliders and send it to 
+    //Update sliders and send it to server
     sliders[i].addEventListener('input', function() {
         slider_name = this.getAttribute('name');
         slider_value = this.value;
@@ -50,13 +50,18 @@ for(var i=0; i<(sliders.length); i++) {
         }
         
         $.ajax({
-            type: 'POST',
+            method: 'POST',
             dataType: 'json',
             data: {
+                'type': 'slider_value_update',
                 'layer_start': layer_start_value,
                 'layer_end': layer_end_value,
                 'component_sliders[]': component_sliders,
-            csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()}
+                csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()},
+            success: function(data){
+                console.log(data['seed'])
+                $('#dummy_image').attr('src', img_src+ '?'+slider_value);
+            }
         });
         
     });

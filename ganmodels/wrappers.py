@@ -114,6 +114,7 @@ class StyleGAN2(BaseModel):
             'bedrooms': 256,
             'kitchen': 256,
             'places': 256,
+            'shoe-sv':1024,
         }
 
         assert self.outclass in configs, \

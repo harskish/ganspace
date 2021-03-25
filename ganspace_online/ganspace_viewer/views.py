@@ -48,18 +48,27 @@ def ganspace_view(request, model_name):
     # print(seed, layer_start)
 
     #print(request.POST.get('layer_start'))
-
+    
     if request.method == 'POST' and request.is_ajax():
         layer_start = request.POST.get('layer_start')
         layer_end = request.POST.get('layer_end')
         component_list = request.POST.getlist('component_sliders[]')
-        sendDataToExporter(layer_start, layer_end, component_list)
-        
-
+        response_type = request.POST.get('type')
+        if (response_type == 'slider_value_update'):
+            sendDataToExporter(layer_start, layer_end, component_list)
+        test_seed = 1244231
+        return JsonResponse({'seed': test_seed})
 
     context = {
         "component_list": range(10),
     }
     return render(request,'admin_ganspace_viewer.html', context)
+
+# def ganspace_view_update(request):
+#     data = {}
+#     data['seed'] = '123124'
+#     if request.method =='GET':
+#         # return JsonResponse({'seed':seed_value})
+#         return JsonResponse(data)
 
 #User Views

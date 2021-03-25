@@ -19,7 +19,7 @@ from types import SimpleNamespace
 import matplotlib.pyplot as plt
 from pathlib import Path
 from os import makedirs
-from models import get_instrumented_model
+from ganmodels import get_instrumented_model
 from config import Config
 from decomposition import get_or_compute
 from torch.nn.functional import interpolate
