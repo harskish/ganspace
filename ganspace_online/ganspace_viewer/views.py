@@ -50,17 +50,26 @@ def ganspace_view(request, model_name):
     #print(request.POST.get('layer_start'))
     
     if request.method == 'POST' and request.is_ajax():
+        model_name = request.POST.get('model_name')
         layer_start = request.POST.get('layer_start')
         layer_end = request.POST.get('layer_end')
         component_list = request.POST.getlist('component_sliders[]')
         response_type = request.POST.get('type')
-        if (response_type == 'slider_value_update'):
-            sendDataToExporter(layer_start, layer_end, component_list)
-        test_seed = 1244231
-        return JsonResponse({'seed': test_seed})
+        seed = request.POST.get('seed')
+        if (response_type == 'slider_value_update' or response_type == 'update_seed'):
+            sendDataToExporter(model_name, layer_start, layer_end, component_list, seed)
+            return JsonResponse({})
+        elif (response_type == 'resample_latent'):
+            seed = generate_new_seed()
+            sendDataToExporter(model_name, layer_start, layer_end, component_list, seed)
+            return JsonResponse({'seed': seed})
 
+    #initialize 
+    seed = generate_new_seed()
     context = {
-        "component_list": range(10),
+        "component_list": range(20),
+        "seed": seed,
+
     }
     return render(request,'admin_ganspace_viewer.html', context)
 

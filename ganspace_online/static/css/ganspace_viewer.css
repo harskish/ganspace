@@ -1,19 +1,19 @@
 :root{
-    --canvas_dimension: 90vh;
+    --canvas_dimension: 85vh;
     --slider_handle_radius: 15px;
     --slider_handle_color: rgb(180, 180, 180);
 }
 
 #image_canvas{
     width: 100%; 
-    height: 100%; 
-    border:1px solid #000000;
+    height: 100%;
 }
 
 .image_window{
     float:left;
     margin-top:3vh;
     margin-left: 5vw; 
+    margin-right: 3vw;
     width: var(--canvas_dimension); 
     height: var(--canvas_dimension);
 }
@@ -21,14 +21,15 @@
 #dummy_image{
     width: 100%; 
     height: 100%;
-    border:1px solid #000000;
+    border:none;
 }
 
 
 .controllers{
+    color: #d3d3d3;
     float:right;
-    margin-right: 5vw;
-    width:40vw;
+    margin-right: 3vw;
+    width:30vw;
     margin-top:3vh;
 }
 
@@ -49,6 +50,7 @@
 }
 
 .layer_name{
+    color: #d3d3d3;
     float:left;
     width: 15%;
 }
@@ -76,11 +78,12 @@
     margin-bottom: 5vh;
 }
 .component_sliders{
-    padding-bottom: 3vh;
+    margin-bottom: 5vh;
 }
 
 .component_name{
-    width: 18%;
+    color: #d3d3d3;
+    width: 15%;
     float:left;
 }
 
@@ -102,7 +105,11 @@
     transition: opacity .2s;
 }
 
+.slider_value{
+    display:none;
+}
 .save_button{
+    color: #d3d3d3;
     width:10%;
     margin: 0;
     border:0;
@@ -111,6 +118,7 @@
 }
 
 .reset_button{
+    color: #d3d3d3;
     width:100%;
     height:100%;
     margin: 0;
@@ -120,15 +128,21 @@
 }
 
 .update_seed_window{
+    color: #d3d3d3;
     width:100%;
     margin-bottom: 2vh;
+    display: inline-block;
 }
 
 .seed_value{
+    border: 0;
+    color: #d3d3d3;
     float:right;
+    width:25%;
 }
 
 .update_button{
+    color: #d3d3d3;
     width:30%;
     height:100%;
     margin: 0;
@@ -139,8 +153,10 @@
     margin-left:5px;
 }
 
+
 .resample_button{
-    width:30%;
+    color: #d3d3d3;
+    width:40%;
     height:100%;
     margin: 0;
     border:0;
@@ -183,7 +199,7 @@
     transition: opacity .2s;
 }
 
-/* Mouse-over effects */
+/* Mouse-over effectfs */
 .slider:hover {
     opacity: 1; /* Fully shown on mouse-over */
 }
