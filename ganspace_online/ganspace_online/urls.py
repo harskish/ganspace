@@ -21,7 +21,7 @@ from ganspace_viewer.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', home_view), #only for debugging
+    path('home', home_view, name = 'home'), #only for debugging
     
     path('manage_users', manage_users_view, name ='manage_users'),
     path('guides', guides_view, name ='guides'),
@@ -32,7 +32,10 @@ urlpatterns = [
     path('models', models_view, name='models'),
     path('user_gallery', user_gallery_view, name='user_gallery'),
 
-    path('models/<str:model_name>', ganspace_view, name='m_name')
+    path('models/<str:model_name>', ganspace_view, name='m_name'),
+
+    path('', login_view, name = 'login'),
+    path('register', register_view, name = 'register')
 ]
 
 urlpatterns += staticfiles_urlpatterns()
