@@ -99,17 +99,17 @@ def ganspace_view(request, model_name):
         response_type = request.POST.get('type')
         seed = request.POST.get('seed')
         if (response_type == 'slider_value_update' or response_type == 'update_seed'):
-            sendDataToExporter(model_name, layer_start, layer_end, component_list, seed)
-            return JsonResponse({})
+            img_base64 = sendDataToExporter(model_name, layer_start, layer_end, component_list, seed)
+            return JsonResponse({'base64_image': img_base64})
         elif (response_type == 'resample_latent'):
             seed = generate_new_seed()
-            sendDataToExporter(model_name, layer_start, layer_end, component_list, seed)
+            img_base64 = sendDataToExporter(model_name, layer_start, layer_end, component_list, seed)
             return JsonResponse({'seed': seed})
 
     #initialize 
     seed = generate_new_seed()
     context = {
-        "component_list": range(20),
+        "component_list": range(10),
         "seed": seed,
 
     }

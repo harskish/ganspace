@@ -52,6 +52,8 @@ from os import sys
 import os.path
 from time import sleep
 import numpy as np
+import base64
+from io import BytesIO
 sys.path.insert(1, '/Users/duongp/ganspace-online')
     
 def sendDataToExporter(model_name, layer_start, layer_end, component_list, seed):
@@ -63,18 +65,25 @@ def sendDataToExporter(model_name, layer_start, layer_end, component_list, seed)
         print('Component',i,component_list[i])
     print('seed', seed)
     
-    # value = float(component_list[0])*10
+    value = float(component_list[0])*10
 
-    # path = os.path.join(os.path.dirname(os.path.dirname(__file__)),'static/media/Images','shoe_even.jpg')
-    # even = Image.open(path)
-    # path = os.path.join(os.path.dirname(os.path.dirname(__file__)),'static/media/Images','shoe_odd.jpg')
-    # odd = Image.open(path)
-    # path = os.path.join(os.path.dirname(os.path.dirname(__file__)),'static/media/Images','test.jpg')
-    # if (int(value) % 2 == 0):
-    #     even.save(path)
-    # else:
-    #     odd.save(path)
-    # sleep(0.1)
+    path = os.path.join(os.path.dirname(os.path.dirname(__file__)),'static/media/Images','shoe_even.jpg')
+    even = Image.open(path)
+    path = os.path.join(os.path.dirname(os.path.dirname(__file__)),'static/media/Images','shoe_odd.jpg')
+    odd = Image.open(path)
+    buffered = BytesIO()
+    
+    path = os.path.join(os.path.dirname(os.path.dirname(__file__)),'static/media/Images','test.jpg')
+    if (int(value) % 2 == 0):
+        even.save(path)
+        #even.save(buffered, format="JPEG")
+    else:
+        #odd.save(buffered, format="JPEG")
+        odd.save(path)
+    #img_str = base64.b64encode(buffered.getvalue())
+    #return img_str
+    #sleep(0.1)
+    
 
 
 
