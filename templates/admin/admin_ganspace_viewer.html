@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/ganspace_viewer.css' %}">
+    
+    </head>
+    <body>
+
+    <div>
+        <div class = "image_window">
+            <img id ="dummy_image" src = "{% static 'media/Images/test.jpg'%}"></img>
+            {% comment %} <canvas id="image_canvas"></canvas> {% endcomment %}
+            {% comment %} <script> img_src =  "{% static 'media/Images/test.jpg'%}" </script>  {% endcomment %}
+            
+        </div>
+
+        <div class = "controllers">
+        {% csrf_token %}
+            <div class = "layer_slider_window">
+                <div class = "layer_start_slider">
+                    <input type="range" min="1" max="16" step="1" value = "1" class="layer_slider slider" id='layer_start' name="layer_start" >
+                    <span class="slider_value" id = "layer_start_value" ></span>
+                    <div class = "layer_name">Layer Start</div>
+                </div>
+
+                <div class = "layer_end_slider">
+                    <input type="range" min="2" max="17" step="1" value="17" class="layer_slider slider" name="layer_end" id ="layer_end">
+                    <span class="slider_value" id = "layer_end_value"></span>
+                    <div class = "layer_name">Layer End</div>
+                </div>
+            </div>
+           
+
+            <div class = "component_slider_window">
+                
+                {% for comp_number in component_list %}
+                <div class = "component_sliders">
+                    {% comment %} <div class = "component_name" id="component_name">Component {{comp_number}}</div> {% endcomment %}
+                    <div class = "component_name">Comp {{comp_number}}</div> 
+                    <button class = "save_button button" id = "save_{{comp_number}}">Save</button>
+                    <input type="range" min="-10" max="10" step="0.1" value="0" class="component_slider slider" id="component_{{comp_number}}" name ="component_slider">
+                    <span class="slider_value" id = "component_{{comp_number}}_value" ></span>
+                </div><br>
+                {% endfor %}
+                
+                
+                <div class = "save_modal_background">
+                    <div class = "save_modal">
+                        <div class = "save_modal_component_name"></div>
+                        <div class = "save_modal_input">
+                            <input type = "text" class="save_modal_input_text" placeholder="Edit Name Here">
+                        </div>
+                        <div class = "save_modal_buttons">
+                            <button class = "save_modal_save_button button">Save</button>
+                            <button class = "save_modal_cancel_button button">Cancel</button>
+                        </div>
+                    </div>
+                </div>  
+
+
+            </div>
+
+            <div class = "other_modifiers">
+
+                <div class = "reset_button_window">
+                    <button class = "reset_button button">Reset</button>
+                </div>
+                
+                {% comment %} <div class = "batch_size_window">
+                    <form method = 'POST'>
+                    {% csrf_token %}
+                    <input type="range" min="1" max="100" value="50" class="batch_slider slider" name="batch_size">
+                    <div class = "batch_size">Batch Size</div>
+                    </form>
+                </div> {% endcomment %}
+
+                <div class = "update_seed_window">
+                    {% comment %} <form method = 'POST'> {% endcomment %}
+                    {% comment %} {% csrf_token %} {% endcomment %}
+                    <button class = "update_button button">Update Seed</button>
+                    <input type = "text" class="seed_value" name = "seed", value = {{seed}}>
+                    <button class = "resample_button button">Resample Latent</button>
+                    {% comment %} </form> {% endcomment %}
+                </div>
+
+            </div>
+        <script> img_src =  "{% static 'media/Images/test.jpg'%}" </script> 
+        <script> var model_name = window.location.pathname; </script>
+        <script src="{% static 'javascript/update_ganspace_state.js' %}"></script>
+        {% comment %} <script src="{% static 'javascript/seed_update.js' %}"></script> {% endcomment %}
+        </div>
+
+    {% comment %} <script src="{% static 'javascript/image_renderer.js' %}"></script>  {% endcomment %}
+    </div>
+    
+    </body>
+</html>
