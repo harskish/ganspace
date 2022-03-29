@@ -50,8 +50,10 @@ def download_google_drive(url, output_name):
     # Google Drive virus check message
     if r.encoding is not None:
         tokens = re.search('(confirm=.+)&amp;id', str(r.content))
+        if tokens is None:
+          tokens = re.search('(confirm=.)', str(r.content))
         assert tokens is not None, 'Could not extract token from response'
-
+        
         url = url.replace('id=', f'{tokens[1]}&id=')
         r = session.get(url, allow_redirects=True)
         r.raise_for_status()
