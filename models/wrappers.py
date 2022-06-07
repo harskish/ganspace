@@ -223,48 +223,9 @@ class StyleGAN2_ada(BaseModel):
         """
         return 0.5*(img+1)
 
+    #TODO: Implement partial foreward for faster computation
     def partial_forward(self, x, layer_name):
-        mapping = self.model.mapping
-        G = self.model.synthesis
-        #trunc = self.model._modules.get('truncation', lambda x : x)
-        #print("TEST1",x.shape)
-
-        if not self.w_primary:
-            c = torch.zeros([x.shape[0], self.model.c_dim], device=self.device)
-            x = mapping.forward(x,c)[:,0,:] # handles list inputs
-
-        # Whole mapping
-        if 'mapping' in layer_name:
-            return
-
-        #x = trunc(x)
-        #if layer_name == 'truncation':
-        #    return
-
-        # Get names of children
-        def iterate(m, name, seen):
-            children = getattr(m, '_modules', [])
-            if len(children) > 0:
-                for child_name, module in children.items():
-                    seen += iterate(module, f'{name}.{child_name}', seen)
-                return seen
-            else:
-                return [name]
-
-        # Generator
-        batch_size = x.size(0)
-        for i, (n, m) in enumerate(G.blocks.items()): # InputBlock or GSynthesisBlock
-            if i == 0:
-                r = m(x[:, 2*i:2*i+2])
-            else:
-                r = m(r, x[:, 2*i:2*i+2])
-
-            children = iterate(m, f'synthesis.blocks.{n}', [])
-            for c in children:
-                if layer_name in c: # substring
-                    return
-
-        raise RuntimeError(f'Layer {layer_name} not encountered in partial_forward')
+        return self.forward(x)
 
     def set_noise_seed(self, seed):
         torch.manual_seed(seed)

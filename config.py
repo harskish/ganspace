@@ -27,10 +27,10 @@ class Config:
         for k, v in self.__dict__.items():
             if k == 'default_args':
                 continue
-            
+
             in_default = k in self.default_args
             same_value = self.default_args.get(k) == v
-            
+
             if in_default and same_value:
                 default[k] = v
             else:
@@ -42,15 +42,15 @@ class Config:
         }
 
         return json.dumps(config, indent=4)
-    
+
     def __repr__(self):
         return self.__str__()
-    
+
     def from_dict(self, dictionary):
         for k, v in dictionary.items():
             setattr(self, k, v)
         return self
-    
+
     def from_args(self, args=sys.argv[1:]):
         parser = argparse.ArgumentParser(description='GAN component analysis config')
         parser.add_argument('--model', dest='model', type=str, default='StyleGAN', help='The network to analyze') # StyleGAN, DCGAN, ProGAN, BigGAN-XYZ
@@ -67,6 +67,11 @@ class Config:
         parser.add_argument('--sigma', type=float, default=2.0, help='Number of stdevs to walk in visualize.py')
         parser.add_argument('--inputs', type=str, default=None, help='Path to directory with named components')
         parser.add_argument('--seed', type=int, default=None, help='Seed used in decomposition')
+        parser.add_argument('--plot_directions', dest='np_directions', type=int, default=14, help='Number of components/directions to plot')
+        parser.add_argument('--plot_images', dest='np_images', type=int, default=5, help='Number of images per component/direction to plot')
+        parser.add_argument('--video_directions', dest='nv_images', type=int, default=5, help='Number of components/directions to create a video of')
+        parser.add_argument('--video_images', dest='nv_images', type=int, default=150, help='Number of frames within a video of one direction/component')
         args = parser.parse_args(args)
+        assert args.np_images % 2 != 0, 'The number of plotted images per component (--plot_images) have to be odd.'
 
         return self.from_dict(args.__dict__)

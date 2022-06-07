@@ -10,7 +10,6 @@
 
 # Patch for broken CTRL+C handler
 # https://github.com/ContinuumIO/anaconda-issues/issues/905
-#sshfs wehrheim@goethe.hhlr-gu.de:/scratch/brainimage/wehrheim /home/oberst/Dokumente/Dropbox/Master/Semester4/Masterarbeit/Cluster
 import os
 os.environ['FOR_DISABLE_CONSOLE_CTRL_HANDLER'] = '1'
 
@@ -55,12 +54,7 @@ def make_mp4(imgs, duration_secs, outname):
     assert FFMPEG_BIN is not None, 'ffmpeg not found, install with "conda install -c conda-forge ffmpeg"'
     assert len(imgs[0].shape) == 3, 'Invalid shape of frame data'
     format_str = 'rgb24' if imgs[0].shape[-1] > 1 else 'gray'
-    #if(imgs[0].shape[-1] == 1):#grayscale
-    #    imgs = [np.stack([img,img,img]) for img in imgs]
-    print("len(imgs) =",len(imgs))
-    print("imgs[0].shape",imgs[0].shape)
     resolution = imgs[0].shape[0:2]
-    print("resolution",resolution)
     fps = int(len(imgs) / duration_secs)
 
     command = [ FFMPEG_BIN,
@@ -164,8 +158,6 @@ if __name__ == '__main__':
     inst = get_instrumented_model(args.model, args.output_class, layer_key, device, use_w=args.use_w)
     model = inst.model
     feature_shape = inst.feature_shape[layer_key]
-    #if("StyleGAN2-ada" in model.name and layer_key == "mapping"):
-    #    feature_shape = torch.Size([1,list(feature_shape)[-1]])
 
     latent_shape = model.get_latent_shape()
     print('Feature shape:', feature_shape)
@@ -260,14 +252,14 @@ if __name__ == '__main__':
         plt.figure(figsize = (14,12))
         plt.suptitle(f"{args.estimator.upper()}: {model.name} - {layer_name}, {get_edit_name(edit_mode)} edit", size=16)
         make_grid(tensors.Z_global_mean, tensors.Z_global_mean, tensors.Z_comp, tensors.Z_stdev, tensors.X_global_mean,
-            tensors.X_comp, tensors.X_stdev, scale=args.sigma, edit_type=edit_mode, n_rows=NUM_PCS, n_cols=NUM_IMAGES)
+            tensors.X_comp, tensors.X_stdev, scale=args.sigma, edit_type=edit_mode, n_rows=args.np_directions, n_cols=args.np_images)
         plt.savefig(outdir_summ / f'components_{get_edit_name(edit_mode)}.jpg', dpi=300)
         show()
 
     print("args.make_video =",args.make_video)
     if args.make_video:
-        components = 1 #10
-        instances = 500#150
+        components = args.nv_directions #10
+        instances = args.nv_images#150
 
         # One reasonable, one over the top
         for sigma in [args.sigma, 3*args.sigma]:
@@ -294,7 +286,7 @@ if __name__ == '__main__':
         plt.figure(figsize = (14,12))
         plt.suptitle(f"{model.name} - {layer_name}, random directions w/ PC stdevs, {get_edit_name(edit_mode)} edit", size=16)
         make_grid(tensors.Z_global_mean, tensors.Z_global_mean, random_dirs_z, tensors.Z_stdev,
-            tensors.X_global_mean, random_dirs_act, tensors.X_stdev, scale=args.sigma, edit_type=edit_mode, n_rows=NUM_PCS, n_cols=NUM_IMAGES)
+            tensors.X_global_mean, random_dirs_act, tensors.X_stdev, scale=args.sigma, edit_type=edit_mode, n_rows=args.np_directions, n_cols=args.np_images)
         plt.savefig(outdir_summ / f'random_dirs_{get_edit_name(edit_mode)}.jpg', dpi=300)
         show()
 
@@ -311,13 +303,13 @@ if __name__ == '__main__':
             plt.figure(figsize = (14,12))
             plt.suptitle(f"{args.estimator.upper()}: {model.name} - {layer_name}, {get_edit_name(edit_mode)} edit", size=16)
             make_grid(z, tensors.Z_global_mean, tensors.Z_comp, tensors.Z_stdev,
-                tensors.X_global_mean, tensors.X_comp, tensors.X_stdev, scale=args.sigma, edit_type=edit_mode, n_rows=NUM_PCS, n_cols=NUM_IMAGES)
+                tensors.X_global_mean, tensors.X_comp, tensors.X_stdev, scale=args.sigma, edit_type=edit_mode, n_rows=args.np_directions, n_cols=args.np_images)
             plt.savefig(outdir_summ / f'samp{img_idx}_real_{get_edit_name(edit_mode)}.jpg', dpi=300)
             show()
 
         if args.make_video:
-            components = 5
-            instances = 150
+            components = args.nv_directions #10
+            instances = args.nv_images#150
 
             # One reasonable, one over the top
             for sigma in [args.sigma, 3*args.sigma]: #[2, 5]:

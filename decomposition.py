@@ -236,7 +236,7 @@ def compute(config, dump_name, instrumented_model):
             latents[i*B:(i+1)*B] = model.sample_latent(n_samples=B).cpu().numpy()
 
     # Decomposition on non-Gaussian latent space
-    samples_are_latents = layer_key in ['g_mapping', 'style'] and inst.model.latent_space_name() == 'W'
+    samples_are_latents = layer_key in ['g_mapping', 'mapping', 'style'] and inst.model.latent_space_name() == 'W'
 
     canceled = False
     try:
