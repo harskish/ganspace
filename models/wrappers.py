@@ -200,27 +200,6 @@ class StyleGAN2_ada(BaseModel):
 
         img = self.model.synthesis.forward(x, noise_mode='const',force_fp32= self.device.type == 'cpu')
 
-        """
-        #print("TEST",self.model.num_ws) #(5,18,512) | [(5,512)...]
-        x = torch.stack(x).permute(1,0,2) if isinstance(x, list) else x
-        #print("foreward(x) with x.shape = ",x.shape)
-        #out, _ = self.model(x, noise=self.noise,
-        #    truncation=self.truncation, truncation_latent=self.latent_avg, input_is_w=self.w_primary)
-        #return 0.5*(out+1)
-        if(len(x.shape)==2): #z latent
-            label_shape = list(x.shape)
-            label_shape[-1] = self.model.c_dim
-            label = torch.zeros(label_shape, device=self.device)
-            #Awaits shape (B,512)
-            img = self.model(x, label, truncation_psi=self.truncation, noise_mode='const',force_fp32= self.device.type == 'cpu')
-        else: # w latent
-            #awaits shape (B,18,512)
-            img = self.model.synthesis(x, noise_mode='const',force_fp32= self.device.type == 'cpu')
-
-        #print("IMAGE SHAPE",img.shape)
-        #img = (img.permute(0, 2, 3, 1) * 127.5 + 128).clamp(0, 255).to(torch.uint8)
-        #PIL.Image.fromarray(img[0].cpu().numpy(), 'RGB')
-        """
         return 0.5*(img+1)
 
     def partial_forward(self, x, layer_name):
@@ -240,34 +219,6 @@ class StyleGAN2_ada(BaseModel):
             G.forward(x, noise_mode='const',force_fp32= self.device.type == 'cpu') #TODO: Implement partial foreward for faster computation
             return
 
-        #x = trunc(x)
-        #if layer_name == 'truncation':
-        #    return
-
-        # Get names of children
-        def iterate(m, name, seen):
-            children = getattr(m, '_modules', [])
-            if len(children) > 0:
-                for child_name, module in children.items():
-                    seen += iterate(module, f'{name}.{child_name}', seen)
-                return seen
-            else:
-                return [name]
-
-        # Generator
-        batch_size = x.size(0)
-        for i, (n, m) in enumerate(G.blocks.items()): # InputBlock or GSynthesisBlock
-            if i == 0:
-                r = m(x[:, 2*i:2*i+2])
-            else:
-                r = m(r, x[:, 2*i:2*i+2])
-
-            children = iterate(m, f'synthesis.blocks.{n}', [])
-            for c in children:
-                if layer_name in c: # substring
-                    return
-
-        raise RuntimeError(f'Layer {layer_name} not encountered in partial_forward')
 
     def set_noise_seed(self, seed):
         torch.manual_seed(seed)
