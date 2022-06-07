@@ -10,7 +10,7 @@
 **`--video_directions`** | **Number of components/directions to create a video of**
 **`--video_images`** | **Number of frames within a video of one direction/component**
 
-`partial_forward` for StyleGAN2-ada is currently not implemented, which means it could take longer then with other models, since the complete foreward-pass is always computeted, even the used activation-layer earlier.
+`partial_forward` for StyleGAN2-ada is currently not implemented, which means it could take longer then with other models, since the complete foreward-pass is always computeted, even if the used activation-layer is somewhere earlier.
 
 
 # GANSpace: Discovering Interpretable GAN Controls
