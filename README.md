@@ -1,8 +1,8 @@
-# Changes compared to the original
+# Changes compared to the original repo
 * Added StyleGAN2-ada support
 * Added grayscale image support
 * Added another progress bar during the creation of the images
-* Added new args for `visualize.py` to control outcome without changing the code:
+* Added new args for `visualize.py` to control the outcome without changing the code:
 
 `--plot_directions` | Number of components/directions to plot in one image
 --- | --- 
