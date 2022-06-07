@@ -1,3 +1,7 @@
+# Changes from original repository
+* Added StyleGAN2-ada support (At the moment only for full *mapping* layer, partial_forward is not yet implemented.)
+* Added grayscale image support
+
 # GANSpace: Discovering Interpretable GAN Controls
 ![Python 3.7](https://img.shields.io/badge/python-3.7-green.svg)
 ![PyTorch 1.3](https://img.shields.io/badge/pytorch-1.3-green.svg)
