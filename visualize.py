@@ -10,6 +10,7 @@
 
 # Patch for broken CTRL+C handler
 # https://github.com/ContinuumIO/anaconda-issues/issues/905
+#sshfs wehrheim@goethe.hhlr-gu.de:/scratch/brainimage/wehrheim /home/oberst/Dokumente/Dropbox/Master/Semester4/Masterarbeit/Cluster
 import os
 os.environ['FOR_DISABLE_CONSOLE_CTRL_HANDLER'] = '1'
 
@@ -31,7 +32,10 @@ import argparse
 from tqdm import trange
 from config import Config
 from decomposition import get_random_dirs, get_or_compute, get_max_batch_size, SEED_VISUALIZATION
-from utils import pad_frames 
+from utils import pad_frames
+
+NUM_PCS = 14#14
+NUM_IMAGES = 5 #num images per PC...
 
 def x_closest(p):
     distances = np.sqrt(np.sum((X - p)**2, axis=-1))
@@ -50,8 +54,13 @@ def make_mp4(imgs, duration_secs, outname):
     FFMPEG_BIN = shutil.which("ffmpeg")
     assert FFMPEG_BIN is not None, 'ffmpeg not found, install with "conda install -c conda-forge ffmpeg"'
     assert len(imgs[0].shape) == 3, 'Invalid shape of frame data'
-    
+    format_str = 'rgb24' if imgs[0].shape[-1] > 1 else 'gray'
+    #if(imgs[0].shape[-1] == 1):#grayscale
+    #    imgs = [np.stack([img,img,img]) for img in imgs]
+    print("len(imgs) =",len(imgs))
+    print("imgs[0].shape",imgs[0].shape)
     resolution = imgs[0].shape[0:2]
+    print("resolution",resolution)
     fps = int(len(imgs) / duration_secs)
 
     command = [ FFMPEG_BIN,
@@ -59,7 +68,7 @@ def make_mp4(imgs, duration_secs, outname):
         '-f', 'rawvideo',
         '-vcodec','rawvideo',
         '-s', f'{resolution[0]}x{resolution[1]}', # size of one frame
-        '-pix_fmt', 'rgb24',
+        '-pix_fmt', f'{format_str}',
         '-r', f'{fps}',
         '-i', '-', # imput from pipe
         '-an', # no audio
@@ -67,8 +76,10 @@ def make_mp4(imgs, duration_secs, outname):
         '-preset', 'slow',
         '-crf', '17',
         str(Path(outname).with_suffix('.mp4')) ]
-    
+
+    print((imgs[0] * 255).astype(np.uint8).reshape(-1).shape)
     frame_data = np.concatenate([(x * 255).astype(np.uint8).reshape(-1) for x in imgs])
+    print(frame_data.shape)
     with sp.Popen(command, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE) as p:
         ret = p.communicate(frame_data.tobytes())
         if p.returncode != 0:
@@ -83,29 +94,31 @@ def make_grid(latent, lat_mean, lat_comp, lat_stdev, act_mean, act_comp, act_std
     x_range = np.linspace(-scale, scale, n_cols, dtype=np.float32) # scale in sigmas
 
     rows = []
-    for r in range(n_rows):
+    for r in trange(n_rows,unit="component"):
         curr_row = []
         out_batch = create_strip_centered(inst, edit_type, layer_key, [latent],
             act_comp[r], lat_comp[r], act_stdev[r], lat_stdev[r], act_mean, lat_mean, scale, 0, -1, n_cols)[0]
+        #print("len(out_batch) =",len(out_batch))
         for i, img in enumerate(out_batch):
             curr_row.append(('c{}_{:.2f}'.format(r, x_range[i]), img))
 
         rows.append(curr_row[:n_cols])
 
     inst.remove_edits()
-    
+
     if make_plots:
         # If more rows than columns, make several blocks side by side
         n_blocks = 2 if n_rows > n_cols else 1
-        
+
         for r, data in enumerate(rows):
             # Add white borders
-            imgs = pad_frames([img for _, img in data]) 
-            
+            imgs = pad_frames([img for _, img in data])
+
             coord = ((r * n_blocks) % n_rows) + ((r * n_blocks) // n_rows)
             plt.subplot(n_rows//n_blocks, n_blocks, 1 + coord)
-            plt.imshow(np.hstack(imgs))
-            
+            _cmap = 'viridis' if imgs[0].shape[2] > 1 else 'gray'
+            plt.imshow(np.hstack(imgs),cmap=_cmap)
+
             # Custom x-axis labels
             W = imgs[0].shape[1] # image width
             P = imgs[1].shape[1] # padding width
@@ -144,7 +157,6 @@ if __name__ == '__main__':
     device = torch.device('cuda' if has_gpu else 'cpu')
     layer_key = args.layer
     layer_name = layer_key #layer_key.lower().split('.')[-1]
-
     basedir = Path(__file__).parent.resolve()
     outdir = basedir / 'out'
 
@@ -152,6 +164,9 @@ if __name__ == '__main__':
     inst = get_instrumented_model(args.model, args.output_class, layer_key, device, use_w=args.use_w)
     model = inst.model
     feature_shape = inst.feature_shape[layer_key]
+    #if("StyleGAN2-ada" in model.name and layer_key == "mapping"):
+    #    feature_shape = torch.Size([1,list(feature_shape)[-1]])
+
     latent_shape = model.get_latent_shape()
     print('Feature shape:', feature_shape)
 
@@ -224,7 +239,7 @@ if __name__ == '__main__':
     def get_edit_name(mode):
         if mode == 'activation':
             is_stylegan = 'StyleGAN' in args.model
-            is_w = layer_key in ['style', 'g_mapping']
+            is_w = layer_key in ['style', 'g_mapping','mapping']
             return 'W' if (is_stylegan and is_w) else 'ACT'
         elif mode == 'latent':
             return model.latent_space_name()
@@ -234,47 +249,52 @@ if __name__ == '__main__':
             raise RuntimeError(f'Unknown edit mode {mode}')
 
     # Only visualize applicable edit modes
-    if args.use_w and layer_key in ['style', 'g_mapping']:
+    if args.use_w and layer_key in ['style', 'g_mapping','mapping']:
         edit_modes = ['latent'] # activation edit is the same
     else:
         edit_modes = ['activation', 'latent']
 
     # Summary grid, real components
     for edit_mode in edit_modes:
+        print("edit_mode =",edit_mode)
         plt.figure(figsize = (14,12))
         plt.suptitle(f"{args.estimator.upper()}: {model.name} - {layer_name}, {get_edit_name(edit_mode)} edit", size=16)
         make_grid(tensors.Z_global_mean, tensors.Z_global_mean, tensors.Z_comp, tensors.Z_stdev, tensors.X_global_mean,
-            tensors.X_comp, tensors.X_stdev, scale=args.sigma, edit_type=edit_mode, n_rows=14)
+            tensors.X_comp, tensors.X_stdev, scale=args.sigma, edit_type=edit_mode, n_rows=NUM_PCS, n_cols=NUM_IMAGES)
         plt.savefig(outdir_summ / f'components_{get_edit_name(edit_mode)}.jpg', dpi=300)
         show()
 
+    print("args.make_video =",args.make_video)
     if args.make_video:
-        components = 15
-        instances = 150
-        
+        components = 1 #10
+        instances = 500#150
+
         # One reasonable, one over the top
         for sigma in [args.sigma, 3*args.sigma]:
             for c in range(components):
                 for edit_mode in edit_modes:
+                    print("Make grid for video")
                     frames = make_grid(tensors.Z_global_mean, tensors.Z_global_mean, tensors.Z_comp[c:c+1, :, :], tensors.Z_stdev[c:c+1], tensors.X_global_mean,
                         tensors.X_comp[c:c+1, :, :], tensors.X_stdev[c:c+1], n_rows=1, n_cols=instances, scale=sigma, make_plots=False, edit_type=edit_mode)
                     plt.close('all')
+                    print("Done!")
 
                     frames = [x for _, x in frames]
                     frames = frames + frames[::-1]
+                    print("num_frames =",len(frames)) #num_frames = 300
                     make_mp4(frames, 5, outdir_comp / f'{get_edit_name(edit_mode)}_sigma{sigma}_comp{c}.mp4')
 
-    
+
     # Summary grid, random directions
     # Using the stdevs of the principal components for same norm
     random_dirs_act = torch.from_numpy(get_random_dirs(n_comp, np.prod(sample_shape)).reshape(-1, *sample_shape)).to(device)
     random_dirs_z = torch.from_numpy(get_random_dirs(n_comp, np.prod(inst.input_shape)).reshape(-1, *latent_shape)).to(device)
-    
+
     for edit_mode in edit_modes:
         plt.figure(figsize = (14,12))
         plt.suptitle(f"{model.name} - {layer_name}, random directions w/ PC stdevs, {get_edit_name(edit_mode)} edit", size=16)
         make_grid(tensors.Z_global_mean, tensors.Z_global_mean, random_dirs_z, tensors.Z_stdev,
-            tensors.X_global_mean, random_dirs_act, tensors.X_stdev, scale=args.sigma, edit_type=edit_mode, n_rows=14)
+            tensors.X_global_mean, random_dirs_act, tensors.X_stdev, scale=args.sigma, edit_type=edit_mode, n_rows=NUM_PCS, n_cols=NUM_IMAGES)
         plt.savefig(outdir_summ / f'random_dirs_{get_edit_name(edit_mode)}.jpg', dpi=300)
         show()
 
@@ -291,14 +311,14 @@ if __name__ == '__main__':
             plt.figure(figsize = (14,12))
             plt.suptitle(f"{args.estimator.upper()}: {model.name} - {layer_name}, {get_edit_name(edit_mode)} edit", size=16)
             make_grid(z, tensors.Z_global_mean, tensors.Z_comp, tensors.Z_stdev,
-                tensors.X_global_mean, tensors.X_comp, tensors.X_stdev, scale=args.sigma, edit_type=edit_mode, n_rows=14)
+                tensors.X_global_mean, tensors.X_comp, tensors.X_stdev, scale=args.sigma, edit_type=edit_mode, n_rows=NUM_PCS, n_cols=NUM_IMAGES)
             plt.savefig(outdir_summ / f'samp{img_idx}_real_{get_edit_name(edit_mode)}.jpg', dpi=300)
             show()
 
         if args.make_video:
             components = 5
             instances = 150
-            
+
             # One reasonable, one over the top
             for sigma in [args.sigma, 3*args.sigma]: #[2, 5]:
                 for edit_mode in edit_modes:

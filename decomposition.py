@@ -87,7 +87,7 @@ def linreg_lstsq(comp_np, mean_np, stdev_np, inst, config):
     n_samp = max(10_000, config.n) // B * B # make divisible
     n_comp = comp.shape[0]
     latent_dims = inst.model.get_latent_dims()
-    
+
     # We're looking for M s.t. M*P*G'(Z) = Z => M*A = Z
     #   Z = batch of latent vectors (n_samples x latent_dims)
     #   G'(Z) = batch of activations at intermediate layer
@@ -104,7 +104,7 @@ def linreg_lstsq(comp_np, mean_np, stdev_np, inst, config):
     # Dimensions other way around, so these are actually the transposes
     A = np.zeros((n_samp, n_comp), dtype=np.float32)
     Z = np.zeros((n_samp, latent_dims), dtype=np.float32)
-    
+
     # Project tensor X onto PCs, return coordinates
     def project(X, comp):
         N = X.shape[0]
@@ -131,7 +131,7 @@ def linreg_lstsq(comp_np, mean_np, stdev_np, inst, config):
     # gelsy = complete orthogonal factorization; sometimes faster
     # gelss = SVD; slow but less memory hungry
     M_t = scipy.linalg.lstsq(A, Z, lapack_driver='gelsd')[0] # torch.lstsq(Z, A)[0][:n_comp, :]
-    
+
     # Solution given by rows of M_t
     Z_comp = M_t[:n_comp, :]
     Z_mean = np.mean(Z, axis=0, keepdims=True)
@@ -218,7 +218,7 @@ def compute(config, dump_name, instrumented_model):
 
     # Must not depend on chosen batch size (reproducibility)
     NB = max(B, max(2_000, 3*config.components)) # ipca: as large as possible!
-    
+
     samples = None
     if not transformer.batch_support:
         samples = np.zeros((N + NB, sample_dims), dtype=np.float32)
@@ -245,7 +245,7 @@ def compute(config, dump_name, instrumented_model):
         for gi in trange(0, N, NB, desc=f'{action} batches (NB={NB})', ascii=True):
             for mb in range(0, NB, B):
                 z = torch.from_numpy(latents[gi+mb:gi+mb+B]).to(device)
-                
+
                 if samples_are_latents:
                     # Decomposition on latents directly (e.g. StyleGAN W)
                     batch = z.reshape((B, -1))
@@ -253,7 +253,7 @@ def compute(config, dump_name, instrumented_model):
                     # Decomposition on intermediate layer
                     with torch.no_grad():
                         model.partial_forward(z, layer_key)
-                    
+
                     # Permuted to place PCA dimensions last
                     batch = inst.retained_features()[layer_key].reshape((B, -1))
 
@@ -268,21 +268,21 @@ def compute(config, dump_name, instrumented_model):
     except KeyboardInterrupt:
         if not transformer.batch_support:
             sys.exit(1) # no progress yet
-        
+
         dump_name = dump_name.parent / dump_name.name.replace(f'n{N}', f'n{gi}')
         print(f'Saving current state to "{dump_name.name}" before exiting')
         canceled = True
-        
+
     if not transformer.batch_support:
         X = samples # Use all samples
         X_global_mean = X.mean(axis=0, keepdims=True, dtype=np.float32) # TODO: activations surely multi-modal...!
         X -= X_global_mean
-        
+
         print(f'[{timestamp()}] Fitting whole batch')
         t_start_fit = datetime.datetime.now()
 
         transformer.fit(X)
-        
+
         print(f'[{timestamp()}] Done in {datetime.datetime.now() - t_start_fit}')
         assert np.all(transformer.transformer.mean_ < 1e-3), 'Mean of normalized data should be zero'
     else:
@@ -291,7 +291,7 @@ def compute(config, dump_name, instrumented_model):
         X -= X_global_mean
 
     X_comp, X_stdev, X_var_ratio = transformer.get_components()
-    
+
     assert X_comp.shape[1] == sample_dims \
         and X_comp.shape[0] == config.components \
         and X_global_mean.shape[1] == sample_dims \
@@ -363,20 +363,20 @@ def get_or_compute(config, model=None, submit_config=None, force_recompute=False
     if submit_config is None:
         wrkdir = str(Path(__file__).parent.resolve())
         submit_config = SimpleNamespace(run_dir_root = wrkdir, run_dir = wrkdir)
-    
+
     # Called directly by run.py
     return _compute(submit_config, config, model, force_recompute)
 
 def _compute(submit_config, config, model=None, force_recompute=False):
     basedir = Path(submit_config.run_dir)
     outdir = basedir / 'out'
-    
+
     if config.n is None:
         raise RuntimeError('Must specify number of samples with -n=XXX')
 
     if model and not isinstance(model, InstrumentedModel):
         raise RuntimeError('Passed model has to be wrapped in "InstrumentedModel"')
-    
+
     if config.use_w and not 'StyleGAN' in config.model:
         raise RuntimeError(f'Cannot change latent space of non-StyleGAN model {config.model}')
 
@@ -398,5 +398,5 @@ def _compute(submit_config, config, model=None, force_recompute=False):
         t_start = datetime.datetime.now()
         compute(config, dump_path, model)
         print('Total time:', datetime.datetime.now() - t_start)
-    
+
     return dump_path

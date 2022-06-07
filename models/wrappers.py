@@ -8,6 +8,7 @@
 # OF ANY KIND, either express or implied. See the License for the specific language
 # governing permissions and limitations under the License.
 
+import math
 import torch
 import numpy as np
 import re
@@ -21,8 +22,10 @@ from netdissect import proggan, zdataset
 from . import biggan
 from . import stylegan
 from . import stylegan2
+from . import stylegan2_ada
 from abc import abstractmethod, ABC as AbstractBaseClass
 from functools import singledispatch
+import PIL.Image
 
 class BaseModel(AbstractBaseClass, torch.nn.Module):
 
@@ -80,7 +83,7 @@ class BaseModel(AbstractBaseClass, torch.nn.Module):
             z = torch.tensor(z).to(self.device)
         img = self.forward(z)
         img_np = img.permute(0, 2, 3, 1).cpu().detach().numpy()
-        return np.clip(img_np, 0.0, 1.0).squeeze()
+        return np.clip(img_np, 0.0, 1.0)#.squeeze()
 
     # For models that use part of latent as conditioning
     def get_conditional_state(self, z):
@@ -92,6 +95,184 @@ class BaseModel(AbstractBaseClass, torch.nn.Module):
 
     def named_modules(self, *args, **kwargs):
         return self.model.named_modules(*args, **kwargs)
+
+# StyleGAN2-ada-pytorch
+class StyleGAN2_ada(BaseModel):
+    def __init__(self, device, class_name, truncation=1.0, use_w=False):
+        super(StyleGAN2_ada, self).__init__('StyleGAN2_ada', class_name or 'ffhq')
+        self.device = device
+        self.truncation = truncation
+        self.latent_avg = None
+        self.w_primary = use_w
+
+        # Image widths
+        configs = {
+            'ffhq': 1024,
+            'afhqcat': 512,
+            'afhqdog': 512,
+            'afhqwild': 512,
+            'brecahad': 1024,
+            'cifar10': 32,
+            'metfaces': 1024,
+        }
+
+        assert self.outclass in configs, \
+            f'Invalid StyleGAN2-ada class {self.outclass}, should be one of [{", ".join(configs.keys())}]'
+
+        self.resolution = configs[self.outclass]
+        self.name = f'StyleGAN2-ada-{self.outclass}'
+        self.has_latent_residual = True
+        self.load_model()
+        self.set_noise_seed(0)
+
+    def latent_space_name(self):
+        return 'W' if self.w_primary else 'Z'
+
+    def use_w(self):
+        self.w_primary = True
+
+    def use_z(self):
+        self.w_primary = False
+
+
+    # URLs created with https://sites.google.com/site/gdocs2direct/
+    def download_checkpoint(self, outfile):
+        checkpoints = {
+            'ffhq': 'https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada/pretrained/ffhq.pkl',
+            'afhqcat': 'https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada/pretrained/afhqcat.pkl',
+            'afhqdog': 'https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada/pretrained/afhqdog.pkl',
+            'afhqwild': 'https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada/pretrained/afhqwild.pkl',
+            'brecahad': 'https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada/pretrained/brecahad.pkl',
+            'cifar10': 'https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada/pretrained/cifar10.pkl',
+            'metfaces': 'https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada/pretrained/metfaces.pkl'
+        }
+
+        url = checkpoints[self.outclass]
+        download_ckpt(url, outfile)
+
+
+    def load_model(self):
+        checkpoint_root = os.environ.get('GANCONTROL_CHECKPOINT_DIR', Path(__file__).parent / 'checkpoints')
+        checkpoint = Path(checkpoint_root) / f'stylegan2_ada/stylegan2_{self.outclass}_{self.resolution}.pkl'
+
+        if not checkpoint.is_file():
+            os.makedirs(checkpoint.parent, exist_ok=True)
+            self.download_checkpoint(checkpoint)
+
+        with stylegan2_ada.dnnlib.util.open_url(str(checkpoint)) as f:
+            self.model = stylegan2_ada.legacy.load_network_pkl(f)['G_ema'].to(self.device)
+
+
+    def sample_latent(self, n_samples=1, seed=None, truncation=None):
+        if seed is None:
+            seed = np.random.randint(np.iinfo(np.int32).max) # use (reproducible) global rand state
+
+        z = torch.from_numpy(np.random.RandomState(seed).randn(n_samples, self.model.z_dim)).to(self.device)
+        c = torch.zeros([n_samples, self.model.c_dim], device=self.device) #no conditioning at the moment
+
+        if self.w_primary:
+            z = self.model.mapping(z,c)[:,0,:]
+        return z
+
+    def get_max_latents(self):
+        return self.model.num_ws
+
+    def set_output_class(self, new_class):
+        if self.outclass != new_class:
+            raise RuntimeError('StyleGAN2-ada: cannot change output class without reloading')
+
+    def forward(self, x):
+        if isinstance(x, list):
+            assert len(x) == self.model.num_ws, 'Must provide 1 or {0} latents'.format(str(self.model.num_ws))
+            if not self.w_primary:
+                label_shape = list(x[0].shape)
+                label_shape[-1] = self.model.c_dim
+                label = torch.zeros(label_shape, device=self.device)
+                x = [self.model.mapping.forward(l,label, truncation_psi=self.truncation)[:,0,:] for l in x]
+            x = torch.stack(x, dim=1)
+        else:
+            if not self.w_primary:
+                label_shape = list(x.shape)
+                label_shape[-1] = self.model.c_dim
+                label = torch.zeros(label_shape, device=self.device)
+                x = self.model.mapping.forward(x,label, truncation_psi=self.truncation)[:,0,:]
+            x = x.unsqueeze(1).expand(-1, 18, -1)
+
+        img = self.model.synthesis.forward(x, noise_mode='const',force_fp32= self.device.type == 'cpu')
+
+        """
+        #print("TEST",self.model.num_ws) #(5,18,512) | [(5,512)...]
+        x = torch.stack(x).permute(1,0,2) if isinstance(x, list) else x
+        #print("foreward(x) with x.shape = ",x.shape)
+        #out, _ = self.model(x, noise=self.noise,
+        #    truncation=self.truncation, truncation_latent=self.latent_avg, input_is_w=self.w_primary)
+        #return 0.5*(out+1)
+        if(len(x.shape)==2): #z latent
+            label_shape = list(x.shape)
+            label_shape[-1] = self.model.c_dim
+            label = torch.zeros(label_shape, device=self.device)
+            #Awaits shape (B,512)
+            img = self.model(x, label, truncation_psi=self.truncation, noise_mode='const',force_fp32= self.device.type == 'cpu')
+        else: # w latent
+            #awaits shape (B,18,512)
+            img = self.model.synthesis(x, noise_mode='const',force_fp32= self.device.type == 'cpu')
+
+        #print("IMAGE SHAPE",img.shape)
+        #img = (img.permute(0, 2, 3, 1) * 127.5 + 128).clamp(0, 255).to(torch.uint8)
+        #PIL.Image.fromarray(img[0].cpu().numpy(), 'RGB')
+        """
+        return 0.5*(img+1)
+
+    def partial_forward(self, x, layer_name):
+        mapping = self.model.mapping
+        G = self.model.synthesis
+        #trunc = self.model._modules.get('truncation', lambda x : x)
+        #print("TEST1",x.shape)
+
+        if not self.w_primary:
+            c = torch.zeros([x.shape[0], self.model.c_dim], device=self.device)
+            x = mapping.forward(x,c)[:,0,:] # handles list inputs
+
+        # Whole mapping
+        if 'mapping' in layer_name:
+            return
+
+        #x = trunc(x)
+        #if layer_name == 'truncation':
+        #    return
+
+        # Get names of children
+        def iterate(m, name, seen):
+            children = getattr(m, '_modules', [])
+            if len(children) > 0:
+                for child_name, module in children.items():
+                    seen += iterate(module, f'{name}.{child_name}', seen)
+                return seen
+            else:
+                return [name]
+
+        # Generator
+        batch_size = x.size(0)
+        for i, (n, m) in enumerate(G.blocks.items()): # InputBlock or GSynthesisBlock
+            if i == 0:
+                r = m(x[:, 2*i:2*i+2])
+            else:
+                r = m(r, x[:, 2*i:2*i+2])
+
+            children = iterate(m, f'synthesis.blocks.{n}', [])
+            for c in children:
+                if layer_name in c: # substring
+                    return
+
+        raise RuntimeError(f'Layer {layer_name} not encountered in partial_forward')
+
+    def set_noise_seed(self, seed):
+        torch.manual_seed(seed)
+        self.noise = [torch.randn(1, 1, 2 ** 2, 2 ** 2, device=self.device)]
+
+        for i in range(3, int(math.log(self.model.img_resolution,2)) + 1):
+            for _ in range(2):
+                self.noise.append(torch.randn(1, 1, 2 ** i, 2 ** i, device=self.device))
 
 # PyTorch port of StyleGAN 2
 class StyleGAN2(BaseModel):
@@ -153,13 +334,13 @@ class StyleGAN2(BaseModel):
     def load_model(self):
         checkpoint_root = os.environ.get('GANCONTROL_CHECKPOINT_DIR', Path(__file__).parent / 'checkpoints')
         checkpoint = Path(checkpoint_root) / f'stylegan2/stylegan2_{self.outclass}_{self.resolution}.pt'
-        
+
         self.model = stylegan2.Generator(self.resolution, 512, 8).to(self.device)
 
         if not checkpoint.is_file():
             os.makedirs(checkpoint.parent, exist_ok=True)
             self.download_checkpoint(checkpoint)
-        
+
         ckpt = torch.load(checkpoint)
         self.model.load_state_dict(ckpt['g_ema'], strict=False)
         self.latent_avg = ckpt['latent_avg'].to(self.device)
@@ -172,7 +353,7 @@ class StyleGAN2(BaseModel):
         z = torch.from_numpy(
                 rng.standard_normal(512 * n_samples)
                 .reshape(n_samples, 512)).float().to(self.device) #[N, 512]
-        
+
         if self.w_primary:
             z = self.model.style(z)
 
@@ -184,7 +365,7 @@ class StyleGAN2(BaseModel):
     def set_output_class(self, new_class):
         if self.outclass != new_class:
             raise RuntimeError('StyleGAN2: cannot change output class without reloading')
-    
+
     def forward(self, x):
         x = x if isinstance(x, list) else [x]
         out, _ = self.model(x, noise=self.noise,
@@ -246,7 +427,7 @@ class StyleGAN2(BaseModel):
             out = conv2(out, latent[:, i + 1], noise=noise[noise_i + 1])
             if f'convs.{i}' in layer_name:
                 return
-            
+
             skip = to_rgb(out, latent[:, i + 2], skip)
             if f'to_rgbs.{i//2}' in layer_name:
                 return
@@ -280,7 +461,7 @@ class StyleGAN(BaseModel):
             'bedrooms': 256,
             'cars': 512,
             'cats': 256,
-            
+
             # From https://github.com/justinpinkney/awesome-pretrained-stylegan
             'vases': 1024,
             'wikiart': 512,
@@ -311,7 +492,7 @@ class StyleGAN(BaseModel):
     def load_model(self):
         checkpoint_root = os.environ.get('GANCONTROL_CHECKPOINT_DIR', Path(__file__).parent / 'checkpoints')
         checkpoint = Path(checkpoint_root) / f'stylegan/stylegan_{self.outclass}_{self.resolution}.pt'
-        
+
         self.model = stylegan.StyleGAN_G(self.resolution).to(self.device)
 
         urls_tf = {
@@ -341,7 +522,7 @@ class StyleGAN(BaseModel):
                     download_ckpt(urls_tf[self.outclass], checkpoint_tf)
                 print('Converting TensorFlow checkpoint to PyTorch')
                 self.model.export_from_tf(checkpoint_tf)
-        
+
         self.model.load_weights(checkpoint)
 
     def sample_latent(self, n_samples=1, seed=None, truncation=None):
@@ -352,10 +533,11 @@ class StyleGAN(BaseModel):
         noise = torch.from_numpy(
                 rng.standard_normal(512 * n_samples)
                 .reshape(n_samples, 512)).float().to(self.device) #[N, 512]
-        
+
         if self.w_primary:
             noise = self.model._modules['g_mapping'].forward(noise)
-        
+
+        #print("NOISE shape",noise.shape)
         return noise
 
     def get_max_latents(self):
@@ -366,7 +548,9 @@ class StyleGAN(BaseModel):
             raise RuntimeError('StyleGAN: cannot change output class without reloading')
 
     def forward(self, x):
+        #print("TEST list",len(x),x[0].shape)
         out = self.model.forward(x, latent_is_w=self.w_primary)
+        #print("IMAGE SHAPE",out.shape)
         return 0.5*(out+1)
 
     # Run model only until given layer
@@ -374,7 +558,7 @@ class StyleGAN(BaseModel):
         mapping = self.model._modules['g_mapping']
         G = self.model._modules['g_synthesis']
         trunc = self.model._modules.get('truncation', lambda x : x)
-
+        #print("TEST1",x.shape)
         if not self.w_primary:
             x = mapping.forward(x) # handles list inputs
 
@@ -423,7 +607,7 @@ class StyleGAN(BaseModel):
         def for_each_child(this, name, func):
             children = getattr(this, '_modules', [])
             for child_name, module in children.items():
-                for_each_child(module, f'{name}.{child_name}', func)            
+                for_each_child(module, f'{name}.{child_name}', func)
             func(this, name)
 
         def modify(m, name):
@@ -460,7 +644,7 @@ class GANZooModel(BaseModel):
     def set_conditional_state(self, z, c):
         z[:, -20:] = c
         return z
-    
+
     def forward(self, x):
         out = self.base_model.test(x)
         return 0.5*(out+1)
@@ -483,7 +667,7 @@ class ProGAN(BaseModel):
     def load_model(self):
         checkpoint_root = os.environ.get('GANCONTROL_CHECKPOINT_DIR', Path(__file__).parent / 'checkpoints')
         checkpoint = Path(checkpoint_root) / f'progan/{self.outclass}_lsun.pth'
-        
+
         if not checkpoint.is_file():
             os.makedirs(checkpoint.parent, exist_ok=True)
             url = f'http://netdissect.csail.mit.edu/data/ganmodel/karras/{self.outclass}_lsun.pth'
@@ -501,7 +685,7 @@ class ProGAN(BaseModel):
         if isinstance(x, list):
             assert len(x) == 1, "ProGAN only supports a single global latent"
             x = x[0]
-        
+
         out = self.model.forward(x)
         return 0.5*(out+1)
 
@@ -534,15 +718,15 @@ class BigGAN(BaseModel):
 
     # Default implementaiton fails without an internet
     # connection, even if the model has been cached
-    def load_model(self, name):        
+    def load_model(self, name):
         if name not in biggan.model.PRETRAINED_MODEL_ARCHIVE_MAP:
             raise RuntimeError('Unknown BigGAN model name', name)
-        
+
         checkpoint_root = os.environ.get('GANCONTROL_CHECKPOINT_DIR', Path(__file__).parent / 'checkpoints')
         model_path = Path(checkpoint_root) / name
 
         os.makedirs(model_path, exist_ok=True)
-        
+
         model_file = model_path / biggan.model.WEIGHTS_NAME
         config_file = model_path / biggan.model.CONFIG_NAME
         model_url = biggan.model.PRETRAINED_MODEL_ARCHIVE_MAP[name]
@@ -562,10 +746,10 @@ class BigGAN(BaseModel):
     def sample_latent(self, n_samples=1, truncation=None, seed=None):
         if seed is None:
             seed = np.random.randint(np.iinfo(np.int32).max) # use (reproducible) global rand state
-        
+
         noise_vector = biggan.truncated_noise_sample(truncation=truncation or self.truncation, batch_size=n_samples, seed=seed)
-        noise = torch.from_numpy(noise_vector) #[N, 128] 
-        
+        noise = torch.from_numpy(noise_vector) #[N, 128]
+
         return noise.to(self.device)
 
     # One extra for gen_z
@@ -577,7 +761,7 @@ class BigGAN(BaseModel):
 
     def set_conditional_state(self, z, c):
         self.v_class = c
-    
+
     def is_valid_class(self, class_id):
         if isinstance(class_id, int):
             return class_id < 1000
@@ -595,8 +779,8 @@ class BigGAN(BaseModel):
             self.v_class = torch.from_numpy(biggan.one_hot_from_names([class_id])).to(self.device)
         else:
             raise RuntimeError(f'Unknown class identifier {class_id}')
-    
-    def forward(self, x):        
+
+    def forward(self, x):
         # Duplicate along batch dimension
         if isinstance(x, list):
             c = self.v_class.repeat(x[0].shape[0], 1)
@@ -626,7 +810,7 @@ class BigGAN(BaseModel):
         else:
             class_label = self.v_class.repeat(x[0].shape[0], 1)
             embed = len(x)*[self.model.embeddings(class_label)]
-        
+
         assert len(x) == self.model.n_latents, f'Expected {self.model.n_latents} latents, got {len(x)}'
         assert len(embed) == self.model.n_latents, f'Expected {self.model.n_latents} class vectors, got {len(class_label)}'
 
@@ -653,18 +837,18 @@ def get_model(name, output_class, device, **kwargs):
     # Check if optionally provided existing model can be reused
     inst = kwargs.get('inst', None)
     model = kwargs.get('model', None)
-    
+
     if inst or model:
         cached = model or inst.model
-        
+
         network_same = (cached.model_name == name)
         outclass_same = (cached.outclass == output_class)
         can_change_class = ('BigGAN' in name)
-        
+
         if network_same and (outclass_same or can_change_class):
             cached.set_output_class(output_class)
             return cached
-    
+
     if name == 'DCGAN':
         import warnings
         warnings.filterwarnings("ignore", message="nn.functional.tanh is deprecated")
@@ -678,6 +862,8 @@ def get_model(name, output_class, device, **kwargs):
         model = StyleGAN(device, class_name=output_class)
     elif name == 'StyleGAN2':
         model = StyleGAN2(device, class_name=output_class)
+    elif name == 'StyleGAN2-ada':
+        model = StyleGAN2_ada(device, class_name=output_class)
     else:
         raise RuntimeError(f'Unknown model {name}')
 
@@ -709,7 +895,7 @@ def get_instrumented_model(name, output_class, layers, device, **kwargs):
             print(f"Layer '{layer_name}' not found in model!")
             print("Available layers:", '\n'.join(module_names))
             raise RuntimeError(f"Unknown layer '{layer_name}''")
-    
+
     # Reset StyleGANs to z mode for shape annotation
     if hasattr(model, 'use_z'):
         model.use_z()

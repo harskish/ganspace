@@ -30,13 +30,13 @@ def pad_frames(strip, pad_fract_horiz=64, pad_fract_vert=0, pad_value=None):
             pad_value = 1.0
         else:
             pad_value = np.iinfo(dtype).max
-    
+
     frames = [strip[0]]
     for frame in strip[1:]:
         if pad_fract_horiz > 0:
-            frames.append(pad_value*np.ones((frame.shape[0], frame.shape[1]//pad_fract_horiz, 3), dtype=dtype))
+            frames.append(pad_value*np.ones((frame.shape[0], frame.shape[1]//pad_fract_horiz, frame.shape[2]), dtype=dtype))
         elif pad_fract_vert > 0:
-            frames.append(pad_value*np.ones((frame.shape[0]//pad_fract_vert, frame.shape[1], 3), dtype=dtype))
+            frames.append(pad_value*np.ones((frame.shape[0]//pad_fract_vert, frame.shape[1], frame.shape[2]), dtype=dtype))
         frames.append(frame)
     return frames
 
@@ -53,7 +53,7 @@ def download_google_drive(url, output_name):
         if tokens is None:
           tokens = re.search('(confirm=.)', str(r.content))
         assert tokens is not None, 'Could not extract token from response'
-        
+
         url = url.replace('id=', f'{tokens[1]}&id=')
         r = session.get(url, allow_redirects=True)
         r.raise_for_status()
