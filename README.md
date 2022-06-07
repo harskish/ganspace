@@ -1,6 +1,17 @@
-# Changes from original repository
-* Added StyleGAN2-ada support (At the moment only for full *mapping* layer, partial_forward is not yet implemented.)
+# Changes compared to the original
+* Added StyleGAN2-ada support
 * Added grayscale image support
+* Added another progress bar during the creation of the images
+* Added new args for `visualize.py` to control outcome without changing the code:
+
+`--plot_directions` | Number of components/directions to plot in one image
+--- | --- 
+**`--plot_images`** | **Number of images per component/direction to plot**
+**`--video_directions`** | **Number of components/directions to create a video of**
+**`--video_images`** | **Number of frames within a video of one direction/component**
+
+`partial_forward` for StyleGAN2-ada is currently not implemented, which means it could take longer then with other models, since the complete foreward-pass is always computeted, even the used activation-layer earlier.
+
 
 # GANSpace: Discovering Interpretable GAN Controls
 ![Python 3.7](https://img.shields.io/badge/python-3.7-green.svg)
