@@ -197,9 +197,7 @@ class StyleGAN2_ada(BaseModel):
                 label_shape[-1] = self.model.c_dim
                 label = torch.zeros(label_shape, device=self.device)
                 x = self.model.mapping.forward(x,label, truncation_psi=self.truncation)[:,0,:]
-            print("TEIL2")
             x = x.unsqueeze(1).expand(-1, 18, -1)
-            print(x.shape)
 
         img = self.model.synthesis.forward(x, noise_mode='const',force_fp32= self.device.type == 'cpu')
 
@@ -505,9 +503,7 @@ class StyleGAN(BaseModel):
             raise RuntimeError('StyleGAN: cannot change output class without reloading')
 
     def forward(self, x):
-        #print("TEST list",len(x),x[0].shape)
         out = self.model.forward(x, latent_is_w=self.w_primary)
-        #print("IMAGE SHAPE",out.shape)
         return 0.5*(out+1)
 
     # Run model only until given layer
