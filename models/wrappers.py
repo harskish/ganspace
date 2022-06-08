@@ -171,7 +171,7 @@ class StyleGAN2_ada(BaseModel):
         c = torch.zeros([n_samples, self.model.c_dim], device=self.device) #no conditioning at the moment
 
         if self.w_primary:
-            z = self.model.mapping(z,c)[:,0,:]
+            z = self.model.mapping(z,c)[:,0,:] #Just use one of the 18 copies
         return z
 
     def get_max_latents(self):
@@ -190,13 +190,16 @@ class StyleGAN2_ada(BaseModel):
                 label = torch.zeros(label_shape, device=self.device)
                 x = [self.model.mapping.forward(l,label, truncation_psi=self.truncation)[:,0,:] for l in x]
             x = torch.stack(x, dim=1)
+
         else:
             if not self.w_primary:
                 label_shape = list(x.shape)
                 label_shape[-1] = self.model.c_dim
                 label = torch.zeros(label_shape, device=self.device)
                 x = self.model.mapping.forward(x,label, truncation_psi=self.truncation)[:,0,:]
+            print("TEIL2")
             x = x.unsqueeze(1).expand(-1, 18, -1)
+            print(x.shape)
 
         img = self.model.synthesis.forward(x, noise_mode='const',force_fp32= self.device.type == 'cpu')
 
@@ -210,7 +213,7 @@ class StyleGAN2_ada(BaseModel):
 
         if not self.w_primary:
             c = torch.zeros([x.shape[0], self.model.c_dim], device=self.device)
-            x = mapping.forward(x,c)[:,0,:] # handles list inputs
+            x = mapping.forward(x,c) # handles list inputs
 
         # Whole mapping
         if 'mapping' in layer_name:

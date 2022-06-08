@@ -74,4 +74,8 @@ class Config:
         args = parser.parse_args(args)
         assert args.np_images % 2 != 0, 'The number of plotted images per component (--plot_images) have to be odd.'
 
+        if(args.model == "StyleGAN2-ada" and args.layer == "g_mapping"):
+            print("No layer \'g_mapping\' in StyleGAN2-ada. Assuming you meant \'mapping\'")
+            args.layer = "mapping"
+
         return self.from_dict(args.__dict__)

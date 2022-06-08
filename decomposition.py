@@ -182,6 +182,12 @@ def compute(config, dump_name, instrumented_model):
     inst.retain_layer(layer_key)
     model.partial_forward(model.sample_latent(1), layer_key)
     sample_shape = inst.retained_features()[layer_key].shape
+
+    #StyleGAN2-ada's mapping networks copies it's result 18 times to [B,18,512] so the sample shape is different than the latent shape
+    #from wrapper, because it only returns [B,512], so that GANSpace can modify only specifc Style-Layers 
+    if(model.model_name == "StyleGAN2_ada" and model.w_primary):
+        sample_shape = (sample_shape[0],sample_shape[2])
+
     sample_dims = np.prod(sample_shape)
     print('Feature shape:', sample_shape)
 
