@@ -107,7 +107,7 @@ def make_grid(latent, lat_mean, lat_comp, lat_stdev, act_mean, act_comp, act_std
 
             coord = ((r * n_blocks) % n_rows) + ((r * n_blocks) // n_rows)
             plt.subplot(n_rows//n_blocks, n_blocks, 1 + coord)
-            
+
             if(imgs[0].shape[2] > 1):
               img_row = np.hstack(imgs)
               _cmap = 'viridis'
@@ -188,6 +188,7 @@ if __name__ == '__main__':
     Z_stdev = data['lat_stdev']
     n_comp = X_comp.shape[0]
     data.close()
+
 
     # Transfer components to device
     tensors = SimpleNamespace(
