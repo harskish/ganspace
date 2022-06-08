@@ -33,9 +33,6 @@ from config import Config
 from decomposition import get_random_dirs, get_or_compute, get_max_batch_size, SEED_VISUALIZATION
 from utils import pad_frames
 
-NUM_PCS = 14#14
-NUM_IMAGES = 5 #num images per PC...
-
 def x_closest(p):
     distances = np.sqrt(np.sum((X - p)**2, axis=-1))
     idx = np.argmin(distances)
@@ -110,8 +107,14 @@ def make_grid(latent, lat_mean, lat_comp, lat_stdev, act_mean, act_comp, act_std
 
             coord = ((r * n_blocks) % n_rows) + ((r * n_blocks) // n_rows)
             plt.subplot(n_rows//n_blocks, n_blocks, 1 + coord)
-            _cmap = 'viridis' if imgs[0].shape[2] > 1 else 'gray'
-            plt.imshow(np.hstack(imgs),cmap=_cmap)
+            
+            if(imgs[0].shape[2] > 1):
+              img_row = np.hstack(imgs)
+              _cmap = 'viridis'
+            else:
+              img_row = np.hstack(imgs).squeeze()
+              _cmap = 'gray'
+            plt.imshow(img_row,cmap=_cmap)
 
             # Custom x-axis labels
             W = imgs[0].shape[1] # image width
