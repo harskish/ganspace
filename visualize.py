@@ -53,7 +53,7 @@ def make_2Dscatter(X_comp,inst,model,layer_key,outdir,n_samples=100):
         activations = torch.cat(all_activations)
 
     X_comp_2 = X_comp.squeeze().reshape((X_comp.shape[0],-1)).transpose(1,0)[:,[0,1]]
-    activations_reduced = activations @ X_comp_2
+    activations_reduced = activations.cpu() @ X_comp_2
     x = activations_reduced[:,0]
     y = activations_reduced[:,1]
 
