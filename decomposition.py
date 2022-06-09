@@ -184,7 +184,7 @@ def compute(config, dump_name, instrumented_model):
     sample_shape = inst.retained_features()[layer_key].shape
 
     #StyleGAN2-ada's mapping networks copies it's result 18 times to [B,18,512] so the sample shape is different than the latent shape
-    #from wrapper, because it only returns [B,512], so that GANSpace can modify only specifc Style-Layers 
+    #from wrapper, because it only returns [B,512], so that GANSpace can modify only specifc Style-Layers
     if(model.model_name == "StyleGAN2_ada" and model.w_primary):
         sample_shape = (sample_shape[0],sample_shape[2])
 
@@ -355,6 +355,7 @@ def compute(config, dump_name, instrumented_model):
         del inst
         del model
 
+
     del X
     del X_comp
     del random_dirs
@@ -406,3 +407,23 @@ def _compute(submit_config, config, model=None, force_recompute=False):
         print('Total time:', datetime.datetime.now() - t_start)
 
     return dump_path
+
+
+
+def imscatter(x, y, image, ax=None, zoom=1):
+    if ax is None:
+        ax = plt.gca()
+    try:
+        image = plt.imread(image)
+    except TypeError:
+        # Likely already an array...
+        pass
+    im = OffsetImage(image, zoom=zoom)
+    x, y = np.atleast_1d(x, y)
+    artists = []
+    for x0, y0 in zip(x, y):
+        ab = AnnotationBbox(im, (x0, y0), xycoords='data', frameon=False)
+        artists.append(ax.add_artist(ab))
+    ax.update_datalim(np.column_stack([x, y]))
+    ax.autoscale()
+    return artists

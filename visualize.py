@@ -32,6 +32,53 @@ from tqdm import trange
 from config import Config
 from decomposition import get_random_dirs, get_or_compute, get_max_batch_size, SEED_VISUALIZATION
 from utils import pad_frames
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+import pickle
+
+def make_2Dscatter(X_comp,inst,model,layer_key,outdir,n_samples=100):
+    assert n_samples % 5 == 0, "n_samples has to be dividable to 5"
+    with torch.no_grad():
+        #draw new latents
+        latents = model.sample_latent(n_samples=n_samples)
+        all_images = []
+        all_activations = []
+        for i in trange(0,int(n_samples/5),desc='Calculate scatter plot'):
+            z = latents[i*5:(i+1)*5:1]
+            images_part = model.forward(z)
+            all_images.append(images_part)
+            activations_part = inst.retained_features()[layer_key].reshape((5, -1))
+            all_activations.append(activations_part)
+
+        images = torch.cat(all_images)
+        activations = torch.cat(all_activations)
+
+    X_comp_2 = X_comp.squeeze().reshape((X_comp.shape[0],-1)).transpose(1,0)[:,[0,1]]
+    activations_reduced = activations @ X_comp_2
+    x = activations_reduced[:,0]
+    y = activations_reduced[:,1]
+
+    fig, ax = plt.subplots(1)
+    plt.scatter(x,y)
+    plt.xlabel("PC1")
+    plt.ylabel("PC2")
+
+    if(images.shape[1] > 1):
+        _cmap = 'viridis'
+        images = np.clip(images.numpy().transpose(0,2,3,1).astype(np.float32),0,1)
+    else:
+        _cmap = 'gray'
+        images = images.squeeze()
+
+    for x0, y0, img in zip(x, y, images):
+        ab = AnnotationBbox(OffsetImage(img,0.05,cmap=_cmap), (x0, y0), frameon=False)
+        ax.add_artist(ab)
+
+    #plt.savefig(outdir/model.name/layer_key.lower()/est_id / f'scatter{str(n_samples)}.jpg', dpi=300)
+    #Save interactive image as binary
+    with open(outdir/model.name/layer_key.lower()/est_id/f'scatter{str(n_samples)}.pickle', 'wb') as pickle_file:
+        pickle.dump(fig, pickle_file)
+
+    show()
 
 def x_closest(p):
     distances = np.sqrt(np.sum((X - p)**2, axis=-1))
@@ -129,6 +176,23 @@ def make_grid(latent, lat_mean, lat_comp, lat_stdev, act_mean, act_comp, act_std
 
     return [img for row in rows for img in row]
 
+def get_edit_name(mode):
+    if mode == 'activation':
+        is_stylegan = 'StyleGAN' in args.model
+        is_w = layer_key in ['style', 'g_mapping','mapping']
+        return 'W' if (is_stylegan and is_w) else 'ACT'
+    elif mode == 'latent':
+        return model.latent_space_name()
+    elif mode == 'both':
+        return 'BOTH'
+    else:
+        raise RuntimeError(f'Unknown edit mode {mode}')
+
+def show():
+    if args.batch_mode:
+        plt.close('all')
+    else:
+        plt.show()
 
 ######################
 ### Visualize results
@@ -207,12 +271,6 @@ if __name__ == '__main__':
     max_batch = args.batch_size or (get_max_batch_size(inst, device) if has_gpu else 1)
     print('Batch size:', max_batch)
 
-    def show():
-        if args.batch_mode:
-            plt.close('all')
-        else:
-            plt.show()
-
     print(f'[{timestamp()}] Creating visualizations')
 
     # Ensure visualization gets new samples
@@ -232,23 +290,15 @@ if __name__ == '__main__':
     sparsity = np.mean(X_comp == 0) # percentage of zero values in components
     print(f'Sparsity: {sparsity:.2f}')
 
-    def get_edit_name(mode):
-        if mode == 'activation':
-            is_stylegan = 'StyleGAN' in args.model
-            is_w = layer_key in ['style', 'g_mapping','mapping']
-            return 'W' if (is_stylegan and is_w) else 'ACT'
-        elif mode == 'latent':
-            return model.latent_space_name()
-        elif mode == 'both':
-            return 'BOTH'
-        else:
-            raise RuntimeError(f'Unknown edit mode {mode}')
-
     # Only visualize applicable edit modes
     if args.use_w and layer_key in ['style', 'g_mapping','mapping']:
         edit_modes = ['latent'] # activation edit is the same
     else:
         edit_modes = ['activation', 'latent']
+
+    #Scatter 2D of PC1 - PC2
+    #(X_comp,inst,model,layer_key,outdir,n_samples=100
+    make_2Dscatter(X_comp,inst,model,layer_key,outdir,n_samples=5)
 
     # Summary grid, real components
     for edit_mode in edit_modes:
