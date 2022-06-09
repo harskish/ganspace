@@ -70,7 +70,7 @@ def make_2Dscatter(X_comp,inst,model,layer_key,outdir,n_samples=100):
         images = images.squeeze()
 
     for x0, y0, img in zip(x, y, images):
-        ab = AnnotationBbox(OffsetImage(img,0.05,cmap=_cmap), (x0, y0), frameon=False)
+        ab = AnnotationBbox(OffsetImage(img.cpu(),0.05,cmap=_cmap), (x0, y0), frameon=False)
         ax.add_artist(ab)
 
     #plt.savefig(outdir/model.name/layer_key.lower()/est_id / f'scatter{str(n_samples)}.jpg', dpi=300)
