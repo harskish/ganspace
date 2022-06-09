@@ -298,7 +298,7 @@ if __name__ == '__main__':
 
     #Scatter 2D of PC1 - PC2
     #(X_comp,inst,model,layer_key,outdir,n_samples=100
-    make_2Dscatter(X_comp,inst,model,layer_key,outdir,n_samples=5)
+    make_2Dscatter(X_comp,inst,model,layer_key,outdir,n_samples=args.scatter_samples)
 
     # Summary grid, real components
     for edit_mode in edit_modes:

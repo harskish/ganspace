@@ -71,6 +71,7 @@ class Config:
         parser.add_argument('--plot_images', dest='np_images', type=int, default=5, help='Number of images per component/direction to plot')
         parser.add_argument('--video_directions', dest='nv_images', type=int, default=5, help='Number of components/directions to create a video of')
         parser.add_argument('--video_images', dest='nv_images', type=int, default=150, help='Number of frames within a video of one direction/component')
+        parser.add_argument('--scatter_samples', dest='scatter_samples', type=int, default=1000, help='Number of samples in the 2D scatter plot of the first two principal components')
         args = parser.parse_args(args)
         assert args.np_images % 2 != 0, 'The number of plotted images per component (--plot_images) have to be odd.'
 
