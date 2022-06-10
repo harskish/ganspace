@@ -36,7 +36,7 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import pickle
 from skimage.transform import resize
 
-def make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,n_samples=100,with_images=False,x_axis_pc=1,y_axis_pc=2):
+def make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,device,n_samples=100,with_images=False,x_axis_pc=1,y_axis_pc=2):
     assert n_samples % 5 == 0, "n_samples has to be dividable by 5"
     samples_are_from_w = layer_key in ['g_mapping', 'mapping', 'style'] and inst.model.latent_space_name() == 'W'
     with torch.no_grad():
@@ -78,7 +78,7 @@ def make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,n_samples=10
             with torch.no_grad():
                 #print(X_global_mean.reshape((X_global_mean.shape[0],-1)).shape,X_comp_2.shape,np.array([x0,y0]).shape)
                 latent = (X_global_mean.reshape((X_global_mean.shape[0],-1)).squeeze() + X_comp_2 @ np.array([x0,y0]).T).reshape(X_global_mean.shape)
-                latent = torch.from_numpy(latent)
+                latent = torch.from_numpy(latent).to(device)
                 #print(latent.shape)
                 img = model.forward(latent)
                 #print("img.shape",img.shape)
@@ -324,7 +324,7 @@ if __name__ == '__main__':
     #Scatter 2D of PC1 - PC2
     #(X_comp,inst,model,layer_key,outdir,n_samples=100
     if(args.show_scatter):
-        make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,
+        make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,device,
         n_samples=args.scatter_samples,with_images=args.scatter_images,x_axis_pc=args.scatter_x_axis_pc,y_axis_pc=args.scatter_y_axis_pc)
 
     # Summary grid, real components
