@@ -30,6 +30,7 @@ argument | description | arg-datatype
 --- | --- | ---
 `--scatter` | Activate scatter-plot | -
 `--scatter_images` | Activate plotting corresponding generated images for each point | -
+`--scatter_samples` | Number of samples in the 2D scatter plot | int
 `--scatter_x` | Number of principal component for x-axis in the scatter plot | int
 `--scatter_y` | Number of principal component for y-axis in the scatter plot | int
 
