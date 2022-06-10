@@ -70,13 +70,13 @@ def make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,n_samples=10
         images = torch.cat(all_images)
         if(images.shape[1] > 1):
             _cmap = 'viridis'
-            images = np.clip(images.numpy().transpose(0,2,3,1).astype(np.float32),0,1)
+            images = np.clip(images.cpu().numpy().transpose(0,2,3,1).astype(np.float32),0,1)
         else:
             _cmap = 'gray'
-            images = images.squeeze()
+            images = images.squeeze().cpu().numpy()
 
         for x0, y0, img in zip(x, y, images):
-            ab = AnnotationBbox(OffsetImage(img.cpu(),0.05,cmap=_cmap), (x0, y0), frameon=False)
+            ab = AnnotationBbox(OffsetImage(img,0.05,cmap=_cmap), (x0, y0), frameon=False)
             ax.add_artist(ab)
 
         #Save interactive image as binary
