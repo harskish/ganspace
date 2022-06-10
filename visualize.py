@@ -34,6 +34,7 @@ from decomposition import get_random_dirs, get_or_compute, get_max_batch_size, S
 from utils import pad_frames
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import pickle
+from skimage.transform import resize
 
 def make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,n_samples=100,with_images=False,x_axis_pc=1,y_axis_pc=2):
     assert n_samples % 5 == 0, "n_samples has to be dividable by 5"
@@ -76,7 +77,8 @@ def make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,n_samples=10
             images = images.squeeze().cpu().numpy()
 
         for x0, y0, img in zip(x, y, images):
-            ab = AnnotationBbox(OffsetImage(img,0.05,cmap=_cmap), (x0, y0), frameon=False)
+            img = resize(img,(256,256)) #downscale images
+            ab = AnnotationBbox(OffsetImage(img,0.2,cmap=_cmap), (x0, y0), frameon=False)
             ax.add_artist(ab)
 
         #Save interactive image as binary
