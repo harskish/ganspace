@@ -35,8 +35,9 @@ from utils import pad_frames
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import pickle
 from skimage.transform import resize
+from matplotlib.patches import Ellipse
 
-def make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,device,n_samples=100,with_images=False,x_axis_pc=1,y_axis_pc=2):
+def make_2Dscatter(X_comp,X_global_mean,X_stdev,inst,model,layer_key,outdir,device,n_samples=100,with_images=False,x_axis_pc=1,y_axis_pc=2):
     assert n_samples % 5 == 0, "n_samples has to be dividable by 5"
     samples_are_from_w = layer_key in ['g_mapping', 'mapping', 'style'] and inst.model.latent_space_name() == 'W'
     with torch.no_grad():
@@ -67,6 +68,20 @@ def make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,device,n_sam
     plt.scatter(x,y)
     plt.xlabel("PC"+str(x_axis_pc))
     plt.ylabel("PC"+str(y_axis_pc))
+    plt.plot(0,0,'rx',alpha=0.5,markersize=10,zorder=10)
+
+    sigma1 = Ellipse(xy=(0, 0), width=X_stdev[x_axis_pc-1], height=X_stdev[y_axis_pc-1],
+                        edgecolor='r', fc='None', lw=2,alpha=0.3,zorder=10)
+    sigma2 = Ellipse(xy=(0, 0), width=2*X_stdev[x_axis_pc-1], height=2*X_stdev[y_axis_pc-1],
+                        edgecolor='r', fc='None', lw=2,alpha=0.25,zorder=10)
+    sigma3 = Ellipse(xy=(0, 0), width=3*X_stdev[x_axis_pc-1], height=3*X_stdev[y_axis_pc-1],
+                        edgecolor='r', fc='None', lw=2,alpha=0.2,zorder=10)
+    sigma4 = Ellipse(xy=(0, 0), width=4*X_stdev[x_axis_pc-1], height=4*X_stdev[y_axis_pc-1],
+                        edgecolor='r', fc='None', lw=2,alpha=0.15,zorder=10)
+    ax.add_patch(sigma1)
+    ax.add_patch(sigma2)
+    ax.add_patch(sigma3)
+    ax.add_patch(sigma4)
 
     if(with_images):
         w_primary_save = model.w_primary
@@ -81,7 +96,6 @@ def make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,device,n_sam
                 latent = torch.from_numpy(latent).to(device)
                 #print(latent.shape)
                 img = model.forward(latent).squeeze()
-                print(img.shape)
 
                 if(len(img.shape) == 3):
                     _cmap = 'viridis'
@@ -324,7 +338,7 @@ if __name__ == '__main__':
     #Scatter 2D of PC1 - PC2
     #(X_comp,inst,model,layer_key,outdir,n_samples=100
     if(args.show_scatter):
-        make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,device,
+        make_2Dscatter(X_comp,X_global_mean,X_stdev,inst,model,layer_key,outdir,device,
         n_samples=args.scatter_samples,with_images=args.scatter_images,x_axis_pc=args.scatter_x_axis_pc,y_axis_pc=args.scatter_y_axis_pc)
 
     # Summary grid, real components
