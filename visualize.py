@@ -35,8 +35,8 @@ from utils import pad_frames
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import pickle
 
-def make_2Dscatter(X_comp,inst,model,layer_key,outdir,n_samples=100):
-    assert n_samples % 5 == 0, "n_samples has to be dividable to 5"
+def make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,n_samples=100,with_images=False,x_axis_pc=1,y_axis_pc=2):
+    assert n_samples % 5 == 0, "n_samples has to be dividable by 5"
     with torch.no_grad():
         #draw new latents
         latents = model.sample_latent(n_samples=n_samples)
@@ -44,39 +44,46 @@ def make_2Dscatter(X_comp,inst,model,layer_key,outdir,n_samples=100):
         all_activations = []
         for i in trange(0,int(n_samples/5),desc='Calculate scatter plot'):
             z = latents[i*5:(i+1)*5:1]
-            images_part = model.forward(z)
-            all_images.append(images_part)
+            if(with_images):
+                images_part = model.forward(z)
+                all_images.append(images_part)
+            else:
+                model.partial_forward(z,layer_name)
+
             activations_part = inst.retained_features()[layer_key].reshape((5, -1))
             all_activations.append(activations_part)
 
-        images = torch.cat(all_images)
-        activations = torch.cat(all_activations)
+        global_mean = torch.from_numpy(X_global_mean.reshape(-1))
+        activations = torch.sub(torch.cat(all_activations),global_mean)
 
-    X_comp_2 = X_comp.squeeze().reshape((X_comp.shape[0],-1)).transpose(1,0)[:,[0,1]]
+    X_comp_2 = X_comp.squeeze().reshape((X_comp.shape[0],-1)).transpose(1,0)[:,[x_axis_pc-1,y_axis_pc-1]]
     activations_reduced = activations.cpu() @ X_comp_2
     x = activations_reduced[:,0]
     y = activations_reduced[:,1]
 
     fig, ax = plt.subplots(1)
     plt.scatter(x,y)
-    plt.xlabel("PC1")
-    plt.ylabel("PC2")
+    plt.xlabel("PC"+str(x_axis_pc))
+    plt.ylabel("PC"+str(y_axis_pc))
 
-    if(images.shape[1] > 1):
-        _cmap = 'viridis'
-        images = np.clip(images.numpy().transpose(0,2,3,1).astype(np.float32),0,1)
+    if(with_images):
+        images = torch.cat(all_images)
+        if(images.shape[1] > 1):
+            _cmap = 'viridis'
+            images = np.clip(images.numpy().transpose(0,2,3,1).astype(np.float32),0,1)
+        else:
+            _cmap = 'gray'
+            images = images.squeeze()
+
+        for x0, y0, img in zip(x, y, images):
+            ab = AnnotationBbox(OffsetImage(img.cpu(),0.05,cmap=_cmap), (x0, y0), frameon=False)
+            ax.add_artist(ab)
+
+        #Save interactive image as binary
+        with open(outdir/model.name/layer_key.lower()/est_id/f'scatter_images{str(n_samples)}.pickle', 'wb') as pickle_file:
+            pickle.dump(fig, pickle_file)
     else:
-        _cmap = 'gray'
-        images = images.squeeze()
-
-    for x0, y0, img in zip(x, y, images):
-        ab = AnnotationBbox(OffsetImage(img.cpu(),0.05,cmap=_cmap), (x0, y0), frameon=False)
-        ax.add_artist(ab)
-
-    #plt.savefig(outdir/model.name/layer_key.lower()/est_id / f'scatter{str(n_samples)}.jpg', dpi=300)
-    #Save interactive image as binary
-    with open(outdir/model.name/layer_key.lower()/est_id/f'scatter{str(n_samples)}.pickle', 'wb') as pickle_file:
-        pickle.dump(fig, pickle_file)
+        plt.savefig(outdir/model.name/layer_key.lower()/est_id / f'scatter{str(n_samples)}.jpg', dpi=300)
 
     show()
 
@@ -298,7 +305,9 @@ if __name__ == '__main__':
 
     #Scatter 2D of PC1 - PC2
     #(X_comp,inst,model,layer_key,outdir,n_samples=100
-    make_2Dscatter(X_comp,inst,model,layer_key,outdir,n_samples=args.scatter_samples)
+    if(args.show_scatter):
+        make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,
+        n_samples=args.scatter_samples,with_images=args.scatter_images,x_axis_pc=args.scatter_x_axis_pc,y_axis_pc=args.scatter_y_axis_pc)
 
     # Summary grid, real components
     for edit_mode in edit_modes:

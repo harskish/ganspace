@@ -71,7 +71,13 @@ class Config:
         parser.add_argument('--plot_images', dest='np_images', type=int, default=5, help='Number of images per component/direction to plot')
         parser.add_argument('--video_directions', dest='nv_images', type=int, default=5, help='Number of components/directions to create a video of')
         parser.add_argument('--video_images', dest='nv_images', type=int, default=150, help='Number of frames within a video of one direction/component')
+        parser.add_argument('--scatter', dest='show_scatter', action='store_true', help='Plot a 2D scatter-plot of the activation space of two principal components')
         parser.add_argument('--scatter_samples', dest='scatter_samples', type=int, default=1000, help='Number of samples in the 2D scatter plot of the first two principal components')
+        parser.add_argument('--scatter_images', dest='scatter_images', action='store_true', help='Plot encoded images instead of points within the scatter plot')
+        parser.add_argument('--scatter_x', dest='scatter_x_axis_pc', type=int, default=1, help='Number of PC for x-axis in the scatter plot')
+        parser.add_argument('--scatter_y', dest='scatter_y_axis_pc', type=int, default=2, help='Number of PC for y-axis in the scatter plot')
+
+
         args = parser.parse_args(args)
         assert args.np_images % 2 != 0, 'The number of plotted images per component (--plot_images) have to be odd.'
 
