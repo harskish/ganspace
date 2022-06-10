@@ -28,7 +28,7 @@ import re
 import sys
 import datetime
 import argparse
-from tqdm import trange
+from tqdm import trange, tqdm
 from config import Config
 from decomposition import get_random_dirs, get_or_compute, get_max_batch_size, SEED_VISUALIZATION
 from utils import pad_frames
@@ -41,15 +41,11 @@ def make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,n_samples=10
     with torch.no_grad():
         #draw new latents
         latents = model.sample_latent(n_samples=n_samples)
-        all_images = []
+
         all_activations = []
-        for i in trange(0,int(n_samples/5),desc='Calculate scatter plot'):
+        for i in range(0,int(n_samples/5)):
             z = latents[i*5:(i+1)*5:1]
-            if(with_images):
-                images_part = model.forward(z)
-                all_images.append(images_part)
-            else:
-                model.partial_forward(z,layer_name)
+            model.partial_forward(z,layer_name)
 
             activations_part = inst.retained_features()[layer_key].reshape((5, -1))
             all_activations.append(activations_part)
@@ -68,19 +64,34 @@ def make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,n_samples=10
     plt.ylabel("PC"+str(y_axis_pc))
 
     if(with_images):
-        images = torch.cat(all_images)
-        if(images.shape[1] > 1):
-            _cmap = 'viridis'
-            images = np.clip(images.cpu().numpy().transpose(0,2,3,1).astype(np.float32),0,1)
-        else:
-            _cmap = 'gray'
-            images = images.squeeze().cpu().numpy()
+        w_primary_save = model.w_primary
+        model.w_primary = True
+        pbar = tqdm(total=len(list(zip(x, y))),desc='Generating images')
+        for x0, y0 in zip(x, y):
+            #activations are already centered | x_0 and y_0 are therefore offsets based from the mean
+            #shift the mean in the corresponding directions and pass it to the network
+            with torch.no_grad():
+                #print(X_global_mean.reshape((X_global_mean.shape[0],-1)).shape,X_comp_2.shape,np.array([x0,y0]).shape)
+                latent = (X_global_mean.reshape((X_global_mean.shape[0],-1)).squeeze() + X_comp_2 @ np.array([x0,y0]).T).reshape(X_global_mean.shape)
+                latent = torch.from_numpy(latent)
+                #print(latent.shape)
+                img = model.forward(latent)
+                #print("img.shape",img.shape)
 
-        for x0, y0, img in zip(x, y, images):
+                if(img.shape[0] > 1):
+                    _cmap = 'viridis'
+                    img = np.clip(img.cpu().numpy().transpose(1,2,0).astype(np.float32),0,1)
+                else:
+                    _cmap = 'gray'
+                    img = img.squeeze().cpu().numpy()
+
             img = resize(img,(256,256)) #downscale images
             ab = AnnotationBbox(OffsetImage(img,0.2,cmap=_cmap), (x0, y0), frameon=False)
             ax.add_artist(ab)
+            pbar.update(1)
 
+        pbar.close()
+        model.w_primary = w_primary_save
         #Save interactive image as binary
         with open(outdir/model.name/layer_key.lower()/est_id/f'scatter_images{str(n_samples)}.pickle', 'wb') as pickle_file:
             pickle.dump(fig, pickle_file)
