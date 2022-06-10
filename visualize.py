@@ -54,10 +54,10 @@ def make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,n_samples=10
             all_activations.append(activations_part)
 
         global_mean = torch.from_numpy(X_global_mean.reshape(-1))
-        activations = torch.sub(torch.cat(all_activations),global_mean)
+        activations = torch.sub(torch.cat(all_activations).cpu(),global_mean)
 
     X_comp_2 = X_comp.squeeze().reshape((X_comp.shape[0],-1)).transpose(1,0)[:,[x_axis_pc-1,y_axis_pc-1]]
-    activations_reduced = activations.cpu() @ X_comp_2
+    activations_reduced = activations @ X_comp_2
     x = activations_reduced[:,0]
     y = activations_reduced[:,1]
 
