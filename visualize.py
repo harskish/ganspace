@@ -80,15 +80,15 @@ def make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,device,n_sam
                 latent = (X_global_mean.reshape((X_global_mean.shape[0],-1)).squeeze() + X_comp_2 @ np.array([x0,y0]).T).reshape(X_global_mean.shape)
                 latent = torch.from_numpy(latent).to(device)
                 #print(latent.shape)
-                img = model.forward(latent)
-                #print("img.shape",img.shape)
+                img = model.forward(latent).squeeze()
+                print(img.shape)
 
-                if(img.shape[0] > 1):
+                if(len(img.shape) == 3):
                     _cmap = 'viridis'
                     img = np.clip(img.cpu().numpy().transpose(1,2,0).astype(np.float32),0,1)
                 else:
                     _cmap = 'gray'
-                    img = img.squeeze().cpu().numpy()
+                    img = img.cpu().numpy()
 
             img = resize(img,(256,256)) #downscale images
             ab = AnnotationBbox(OffsetImage(img,0.2,cmap=_cmap), (x0, y0), frameon=False)
