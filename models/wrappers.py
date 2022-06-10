@@ -197,7 +197,8 @@ class StyleGAN2_ada(BaseModel):
                 label_shape[-1] = self.model.c_dim
                 label = torch.zeros(label_shape, device=self.device)
                 x = self.model.mapping.forward(x,label, truncation_psi=self.truncation)[:,0,:]
-            x = x.unsqueeze(1).expand(-1, 18, -1)
+            if(len(x.shape) != 3 or x.shape[1] != self.model.num_ws):
+                x = x.unsqueeze(1).expand(-1, self.model.num_ws, -1)
 
         img = self.model.synthesis.forward(x, noise_mode='const',force_fp32= self.device.type == 'cpu')
 

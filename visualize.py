@@ -38,20 +38,25 @@ from skimage.transform import resize
 
 def make_2Dscatter(X_comp,X_global_mean,inst,model,layer_key,outdir,n_samples=100,with_images=False,x_axis_pc=1,y_axis_pc=2):
     assert n_samples % 5 == 0, "n_samples has to be dividable by 5"
+    samples_are_from_w = layer_key in ['g_mapping', 'mapping', 'style'] and inst.model.latent_space_name() == 'W'
     with torch.no_grad():
         #draw new latents
         latents = model.sample_latent(n_samples=n_samples)
 
-        all_activations = []
-        for i in range(0,int(n_samples/5)):
-            z = latents[i*5:(i+1)*5:1]
-            model.partial_forward(z,layer_name)
+        if(samples_are_from_w):
+            activations = latents
+        else:
+            all_activations = []
+            for i in range(0,int(n_samples/5)):
+                z = latents[i*5:(i+1)*5:1]
+                model.partial_forward(z,layer_name)
 
-            activations_part = inst.retained_features()[layer_key].reshape((5, -1))
-            all_activations.append(activations_part)
+                activations_part = inst.retained_features()[layer_key].reshape((5, -1))
+                all_activations.append(activations_part)
+            activations = torch.cat(all_activations)
 
         global_mean = torch.from_numpy(X_global_mean.reshape(-1))
-        activations = torch.sub(torch.cat(all_activations).cpu(),global_mean)
+        activations = torch.sub(activations.cpu(),global_mean)
 
     X_comp_2 = X_comp.squeeze().reshape((X_comp.shape[0],-1)).transpose(1,0)[:,[x_axis_pc-1,y_axis_pc-1]]
     activations_reduced = activations @ X_comp_2
