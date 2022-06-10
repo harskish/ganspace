@@ -18,7 +18,7 @@
 
 argument | description | arg-datatype
 --- | --- | ---
-`--plot_directions` | Number of components/directions to plot in one plot |int
+`--plot_directions` | Number of components/directions to plot |int
 `--plot_images` | Number of images per component/direction to plot | int
 `--video_directions` | Number of components/directions to create a video of | int
 `--video_images` | Number of frames within a video of one direction/component | int
