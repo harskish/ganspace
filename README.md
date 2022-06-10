@@ -4,13 +4,25 @@
 * Added another progress bar during the creation of the images
 * Added new args for `visualize.py` to control the outcome without changing the code:
 
-`--plot_directions` | Number of components/directions to plot in one image
+argument | description
 --- | --- 
-**`--plot_images`** | **Number of images per component/direction to plot**
-**`--video_directions`** | **Number of components/directions to create a video of**
-**`--video_images`** | **Number of frames within a video of one direction/component**
+`--plot_directions` | Number of components/directions to plot in one image
+`--plot_images` | Number of images per component/direction to plot
+`--video_directions` | Number of components/directions to create a video of
+`--video_images` | Number of frames within a video of one direction/component
 
-`partial_forward` for StyleGAN2-ada is currently not implemented, which means it could take longer than with other models, since the complete foreward-pass is always computeted, even if the used activation-layer is somewhere earlier.
+The following classes for StyleGAN2-ada are available for automatic download:
+* `ffhq`
+* `afhqcat`
+* `afhqdog`
+* `afhqwild`
+* `brecahad`
+* `cifar10`
+* `metfaces`
+
+For a custom class add the name and the resolution in the `configs` dictonary in `models/wrappers.py` in the `StyleGAN2_ada` constructor and place the checkpoint-file at `models/checkpoints/stylegan2_ada/stylegan2_{class_name}_{resolution}.pkl` (replace {class_name} and {resolution} with the ones you added to the `configs` dict.)
+
+`partial_forward` for StyleGAN2-ada is currently not fully implemented, which means if you use a layer in the synthesis network as activation space, it could take longer than with other models, since the complete foreward-pass is always computeted, even if the used layer is located somewhere earlier.
 
 
 # GANSpace: Discovering Interpretable GAN Controls
