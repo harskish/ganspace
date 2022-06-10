@@ -1,28 +1,39 @@
 # Changes compared to the original repo
-* Added StyleGAN2-ada support
-* Added grayscale image support
-* Added another progress bar during the creation of the images
-* Added new args for `visualize.py` to control the outcome without changing the code:
+* **Added StyleGAN2-ada support**  <br />
+  The following classes for StyleGAN2-ada are available for automatic download:
+  * `ffhq`
+  * `afhqcat`
+  * `afhqdog`
+  * `afhqwild`
+  * `brecahad`
+  * `cifar10`
+  * `metfaces`
+  
+  For a custom class add the name and the resolution in the `configs` dictonary in `models/wrappers.py` in the `StyleGAN2_ada` constructor and place the checkpoint-file at `models/checkpoints/stylegan2_ada/stylegan2_{class_name}_{resolution}.pkl` (replace {class_name} and {resolution} with the ones you added to the `configs` dict.)
 
-argument | description
---- | --- 
-`--plot_directions` | Number of components/directions to plot in one image
-`--plot_images` | Number of images per component/direction to plot
-`--video_directions` | Number of components/directions to create a video of
-`--video_images` | Number of frames within a video of one direction/component
+  `partial_forward` for StyleGAN2-ada is currently not fully implemented, which means if you use a layer in the synthesis network as activation space, it could take longer than with other models, since the complete foreward-pass is always computeted, even if the used layer is located somewhere earlier.
+* **Added grayscale image support**
+* **Added another progress bar during the creation of the images**
+* **Added new args for `visualize.py` to control the outcome without changing the code:**
 
-The following classes for StyleGAN2-ada are available for automatic download:
-* `ffhq`
-* `afhqcat`
-* `afhqdog`
-* `afhqwild`
-* `brecahad`
-* `cifar10`
-* `metfaces`
+argument | description | arg-datatype
+--- | --- | ---
+`--plot_directions` | Number of components/directions to plot in one plot |int
+`--plot_images` | Number of images per component/direction to plot | int
+`--video_directions` | Number of components/directions to create a video of | int
+`--video_images` | Number of frames within a video of one direction/component | int
+* **Added interactive 2D scatter plot of the used activation space:**
 
-For a custom class add the name and the resolution in the `configs` dictonary in `models/wrappers.py` in the `StyleGAN2_ada` constructor and place the checkpoint-file at `models/checkpoints/stylegan2_ada/stylegan2_{class_name}_{resolution}.pkl` (replace {class_name} and {resolution} with the ones you added to the `configs` dict.)
+<img src="StyleGAN_scatter.png" width=75% height=75%>
 
-`partial_forward` for StyleGAN2-ada is currently not fully implemented, which means if you use a layer in the synthesis network as activation space, it could take longer than with other models, since the complete foreward-pass is always computeted, even if the used layer is located somewhere earlier.
+argument | description | arg-datatype
+--- | --- | ---
+`--scatter` | Activate scatter-plot | -
+`--scatter_images` | Activate plotting corresponding generated images for each point | -
+`--scatter_x` | Number of principal component for x-axis in the scatter plot | int
+`--scatter_y` | Number of principal component for y-axis in the scatter plot | int
+
+If `--scatter_images` is active, the interactive plot is saved as `.pickle` which can be opened with `python open_scatter.py [path]`. 
 
 
 # GANSpace: Discovering Interpretable GAN Controls
