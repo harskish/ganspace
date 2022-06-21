@@ -36,6 +36,7 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import pickle
 from skimage.transform import resize
 from matplotlib.patches import Ellipse
+from estimators import get_estimator
 
 def make_2Dscatter(X_comp,X_global_mean,X_stdev,inst,model,layer_key,outdir,device,n_samples=100,with_images=False,x_axis_pc=1,y_axis_pc=2):
     assert n_samples % 5 == 0, "n_samples has to be dividable by 5"
@@ -65,6 +66,7 @@ def make_2Dscatter(X_comp,X_global_mean,X_stdev,inst,model,layer_key,outdir,devi
     y = activations_reduced[:,1]
 
     fig, ax = plt.subplots(1)
+    ax.axis('equal')
     plt.scatter(x,y)
     plt.xlabel("PC"+str(x_axis_pc))
     plt.ylabel("PC"+str(y_axis_pc))
@@ -112,12 +114,43 @@ def make_2Dscatter(X_comp,X_global_mean,X_stdev,inst,model,layer_key,outdir,devi
         pbar.close()
         model.w_primary = w_primary_save
         #Save interactive image as binary
-        with open(outdir/model.name/layer_key.lower()/est_id/f'scatter_images{str(n_samples)}.pickle', 'wb') as pickle_file:
+        with open(outdir/model.name/layer_key.lower()/est_id/f'scatter_images{str(n_samples)}_{"PC"+str(x_axis_pc)}_{"PC"+str(y_axis_pc)}.pickle', 'wb') as pickle_file:
             pickle.dump(fig, pickle_file)
     else:
-        plt.savefig(outdir/model.name/layer_key.lower()/est_id / f'scatter{str(n_samples)}.jpg', dpi=300)
+        plt.savefig(outdir/model.name/layer_key.lower()/est_id / f'scatter{str(n_samples)}_{"PC"+str(x_axis_pc)}_{"PC"+str(y_axis_pc)}.jpg', dpi=300)
 
     show()
+
+def plot_explained_variance(X_var_ratio,X_dim,args):
+    #PCA on complete random space to compare:
+    transformer = get_estimator(args.estimator, args.components, args.sparsity)
+    seed = np.random.randint(np.iinfo(np.int32).max) # use (reproducible) global rand state
+    random_samples = torch.from_numpy(np.random.RandomState(seed).randn(10000, X_dim[-1]))
+    transformer.fit(random_samples)
+    _, _, random_var_ratio = transformer.get_components()
+
+    fig, ax = plt.subplots(1)
+
+    X_cumm_lst = []
+    X_cumm = 0
+    random_cumm_lst = []
+    random_cumm = 0
+    for i in range(X_var_ratio.shape[0]):
+        X_cumm += X_var_ratio[i]
+        X_cumm_lst.append(X_cumm)
+        random_cumm += random_var_ratio[i]
+        random_cumm_lst.append(random_cumm)
+
+    plt.plot(X_cumm_lst,label="activation space")
+    plt.plot(random_cumm_lst,label="random space")
+    #plt.plot(X_var_ratio,label="activation space")
+    #plt.plot(random_var_ratio,label="random space")
+    plt.title("cumulative variance ratio")
+    #plt.title("variance ratio")
+    plt.xlabel("principal component")
+    plt.ylabel("ratio")
+    plt.legend()
+    plt.show()
 
 def x_closest(p):
     distances = np.sqrt(np.sum((X - p)**2, axis=-1))
@@ -292,7 +325,6 @@ if __name__ == '__main__':
     n_comp = X_comp.shape[0]
     data.close()
 
-
     # Transfer components to device
     tensors = SimpleNamespace(
         X_comp = torch.from_numpy(X_comp).to(device).float(), #-1, 1, C, H, W
@@ -334,6 +366,8 @@ if __name__ == '__main__':
         edit_modes = ['latent'] # activation edit is the same
     else:
         edit_modes = ['activation', 'latent']
+
+    #plot_explained_variance(X_var_ratio,X_comp.shape[1:],args)
 
     #Scatter 2D of PC1 - PC2
     #(X_comp,inst,model,layer_key,outdir,n_samples=100
