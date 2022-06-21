@@ -10,6 +10,7 @@ def show_figure(fig):
     new_manager = dummy.canvas.manager
     new_manager.canvas.figure = fig
     fig.set_canvas(new_manager.canvas)
+    plt.axis('equal')
     plt.show()
 
 plt.switch_backend('TkAgg')

@@ -66,7 +66,6 @@ def make_2Dscatter(X_comp,X_global_mean,X_stdev,inst,model,layer_key,outdir,devi
     y = activations_reduced[:,1]
 
     fig, ax = plt.subplots(1)
-    ax.axis('equal')
     plt.scatter(x,y)
     plt.xlabel("PC"+str(x_axis_pc))
     plt.ylabel("PC"+str(y_axis_pc))
