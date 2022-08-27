@@ -114,7 +114,8 @@ class StyleGAN2(BaseModel):
             'bedrooms': 256,
             'kitchen': 256,
             'places': 256,
-            'fashionfirst': 512
+            'fashionfirst': 512,
+            'fashionhm': 512
         }
 
         assert self.outclass in configs, \
@@ -146,7 +147,8 @@ class StyleGAN2(BaseModel):
             'places': 'https://drive.google.com/uc?export=download&id=1X8-wIH3aYKjgDZt4KMOtQzN1m4AlCVhm',
             'bedrooms': 'https://drive.google.com/uc?export=download&id=1nZTW7mjazs-qPhkmbsOLLA_6qws-eNQu',
             'kitchen': 'https://drive.google.com/uc?export=download&id=15dCpnZ1YLAnETAPB0FGmXwdBclbwMEkZ',
-            'fashionfirst': 'https://drive.google.com/uc?export=download&id=1Gyr1sOZZNwLXPN1n5RugXeKYU6sP-aJF'
+            'fashionfirst': 'https://drive.google.com/uc?export=download&id=1Gyr1sOZZNwLXPN1n5RugXeKYU6sP-aJF',
+            'fashionhm': 'https://drive.google.com/uc?export=download&id=1M5ifLOtmTF1NbslyHfa6ZY0rk-NS0TxX'
         }
 
         url = checkpoints[self.outclass]
