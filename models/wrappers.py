@@ -148,7 +148,7 @@ class StyleGAN2(BaseModel):
             'bedrooms': 'https://drive.google.com/uc?export=download&id=1nZTW7mjazs-qPhkmbsOLLA_6qws-eNQu',
             'kitchen': 'https://drive.google.com/uc?export=download&id=15dCpnZ1YLAnETAPB0FGmXwdBclbwMEkZ',
             'fashionfirst': 'https://drive.google.com/uc?export=download&id=1Gyr1sOZZNwLXPN1n5RugXeKYU6sP-aJF',
-            'fashionhm': 'https://drive.google.com/uc?export=download&id=1M5ifLOtmTF1NbslyHfa6ZY0rk-NS0TxX'
+            'fashionhm': 'https://drive.google.com/uc?export=download&id=1sw5JvdeV4y7Sxl0PDzlgqswkSO_pTm7l'
         }
 
         url = checkpoints[self.outclass]
