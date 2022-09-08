@@ -158,7 +158,7 @@ class StyleGAN2(BaseModel):
         checkpoint_root = os.environ.get('GANCONTROL_CHECKPOINT_DIR', Path(__file__).parent / 'checkpoints')
         checkpoint = Path(checkpoint_root) / f'stylegan2/stylegan2_{self.outclass}_{self.resolution}.pt'
         
-        self.model = stylegan2.Generator(self.resolution, 512, 8).to(self.device)
+        self.model = stylegan2.Generator(self.resolution, 512, 2).to(self.device)
 
         if not checkpoint.is_file():
             os.makedirs(checkpoint.parent, exist_ok=True)
