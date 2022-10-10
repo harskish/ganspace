@@ -27,10 +27,10 @@ class Config:
         for k, v in self.__dict__.items():
             if k == 'default_args':
                 continue
-            
+
             in_default = k in self.default_args
             same_value = self.default_args.get(k) == v
-            
+
             if in_default and same_value:
                 default[k] = v
             else:
@@ -42,15 +42,15 @@ class Config:
         }
 
         return json.dumps(config, indent=4)
-    
+
     def __repr__(self):
         return self.__str__()
-    
+
     def from_dict(self, dictionary):
         for k, v in dictionary.items():
             setattr(self, k, v)
         return self
-    
+
     def from_args(self, args=sys.argv[1:]):
         parser = argparse.ArgumentParser(description='GAN component analysis config')
         parser.add_argument('--model', dest='model', type=str, default='StyleGAN', help='The network to analyze') # StyleGAN, DCGAN, ProGAN, BigGAN-XYZ
@@ -67,6 +67,22 @@ class Config:
         parser.add_argument('--sigma', type=float, default=2.0, help='Number of stdevs to walk in visualize.py')
         parser.add_argument('--inputs', type=str, default=None, help='Path to directory with named components')
         parser.add_argument('--seed', type=int, default=None, help='Seed used in decomposition')
+        parser.add_argument('--plot_directions', dest='np_directions', type=int, default=14, help='Number of components/directions to plot')
+        parser.add_argument('--plot_images', dest='np_images', type=int, default=5, help='Number of images per component/direction to plot')
+        parser.add_argument('--video_directions', dest='nv_images', type=int, default=5, help='Number of components/directions to create a video of')
+        parser.add_argument('--video_images', dest='nv_images', type=int, default=150, help='Number of frames within a video of one direction/component')
+        parser.add_argument('--scatter', dest='show_scatter', action='store_true', help='Plot a 2D scatter-plot of the activation space of two principal components')
+        parser.add_argument('--scatter_samples', dest='scatter_samples', type=int, default=1000, help='Number of samples in the 2D scatter plot of the first two principal components')
+        parser.add_argument('--scatter_images', dest='scatter_images', action='store_true', help='Plot encoded images instead of points within the scatter plot')
+        parser.add_argument('--scatter_x', dest='scatter_x_axis_pc', type=int, default=1, help='Number of PC for x-axis in the scatter plot')
+        parser.add_argument('--scatter_y', dest='scatter_y_axis_pc', type=int, default=2, help='Number of PC for y-axis in the scatter plot')
+
+
         args = parser.parse_args(args)
+        assert args.np_images % 2 != 0, 'The number of plotted images per component (--plot_images) have to be odd.'
+
+        if(args.model == "StyleGAN2-ada" and args.layer == "g_mapping"):
+            print("No layer \'g_mapping\' in StyleGAN2-ada. Assuming you meant \'mapping\'")
+            args.layer = "mapping"
 
         return self.from_dict(args.__dict__)

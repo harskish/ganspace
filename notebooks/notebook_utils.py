@@ -47,10 +47,10 @@ def _create_strip_impl(inst, mode, layer, latents, x_comp, z_comp, act_stdev, la
             act_stdev, lat_stdev, act_mean, lat_mean, sigma, layer_start, layer_end, num_frames, center)
 
 # Batch over frames if there are more frames in strip than latents
-def _create_strip_batch_sigma(inst, mode, layer, latents, x_comp, z_comp, act_stdev, lat_stdev, act_mean, lat_mean, sigma, layer_start, layer_end, num_frames, center):    
+def _create_strip_batch_sigma(inst, mode, layer, latents, x_comp, z_comp, act_stdev, lat_stdev, act_mean, lat_mean, sigma, layer_start, layer_end, num_frames, center):
     inst.close()
     batch_frames = [[] for _ in range(len(latents))]
-    
+
     B = min(num_frames, 5)
     lep_padded = ((num_frames - 1) // B + 1) * B
     sigma_range = np.linspace(-sigma, sigma, num_frames)
@@ -60,11 +60,11 @@ def _create_strip_batch_sigma(inst, mode, layer, latents, x_comp, z_comp, act_st
 
     for i_batch in range(lep_padded // B):
         sigmas = sigma_range[i_batch*B:(i_batch+1)*B]
-        
+
         for i_lat in range(len(latents)):
             z_single = latents[i_lat]
             z_batch = z_single.repeat_interleave(B, axis=0)
-            
+
             zeroing_offset_act = 0
             zeroing_offset_lat = 0
             if center:
@@ -90,6 +90,7 @@ def _create_strip_batch_sigma(inst, mode, layer, latents, x_comp, z_comp, act_st
                         z[i] = z[i] - zeroing_offset_lat + delta
 
                 if mode in ['activation', 'both']:
+                    #HIER DRIN bei dem 1-ner batch sample
                     comp_batch = x_comp.repeat_interleave(B, axis=0)
                     delta = comp_batch * sigmas.reshape([-1] + [1]*(comp_batch.ndim - 1))
                     inst.edit_layer(layer, offset=delta * act_stdev - zeroing_offset_act)
@@ -97,7 +98,7 @@ def _create_strip_batch_sigma(inst, mode, layer, latents, x_comp, z_comp, act_st
                 img_batch = inst.model.sample_np(z)
                 if img_batch.ndim == 3:
                     img_batch = np.expand_dims(img_batch, axis=0)
-                    
+
                 for j, img in enumerate(img_batch):
                     idx = i_batch*B + j
                     if idx < num_frames:
@@ -106,7 +107,7 @@ def _create_strip_batch_sigma(inst, mode, layer, latents, x_comp, z_comp, act_st
     return batch_frames
 
 # Batch over latents if there are more latents than frames in strip
-def _create_strip_batch_lat(inst, mode, layer, latents, x_comp, z_comp, act_stdev, lat_stdev, act_mean, lat_mean, sigma, layer_start, layer_end, num_frames, center):    
+def _create_strip_batch_lat(inst, mode, layer, latents, x_comp, z_comp, act_stdev, lat_stdev, act_mean, lat_mean, sigma, layer_start, layer_end, num_frames, center):
     n_lat = len(latents)
     B = min(n_lat, 5)
 
@@ -114,7 +115,7 @@ def _create_strip_batch_lat(inst, mode, layer, latents, x_comp, z_comp, act_stde
     if layer_end < 0 or layer_end > max_lat:
         layer_end = max_lat
     layer_start = np.clip(layer_start, 0, layer_end)
-    
+
     len_padded = ((n_lat - 1) // B + 1) * B
     batch_frames = [[] for _ in range(n_lat)]
 
@@ -122,14 +123,14 @@ def _create_strip_batch_lat(inst, mode, layer, latents, x_comp, z_comp, act_stde
         zs = latents[i_batch*B:(i_batch+1)*B]
         if len(zs) == 0:
             continue
-        
+
         z_batch_single = torch.cat(zs, 0)
 
         inst.close() # don't retain, remove edits
         sigma_range = np.linspace(-sigma, sigma, num_frames, dtype=np.float32)
 
         normalize = lambda v : v / torch.sqrt(torch.sum(v**2, dim=-1, keepdim=True) + 1e-8)
-        
+
         zeroing_offset_act = 0
         zeroing_offset_lat = 0
         if center:
@@ -163,7 +164,7 @@ def _create_strip_batch_lat(inst, mode, layer, latents, x_comp, z_comp, act_stde
                 img_batch = inst.model.sample_np(z)
                 if img_batch.ndim == 3:
                     img_batch = np.expand_dims(img_batch, axis=0)
-                    
+
                 for j, img in enumerate(img_batch):
                     img_idx = i_batch*B + j
                     if img_idx < n_lat:
@@ -176,12 +177,12 @@ def save_frames(title, model_name, rootdir, frames, strip_width=10):
     test_name = prettify_name(title)
     outdir = f'{rootdir}/{model_name}/{test_name}'
     makedirs(outdir, exist_ok=True)
-    
+
     # Limit maximum resolution
     max_H = 512
     real_H = frames[0][0].shape[0]
     ratio = min(1.0, max_H / real_H)
-    
+
     # Combined with first 10
     strips = [np.hstack(frames) for frames in frames[:strip_width]]
     if len(strips) >= strip_width:
@@ -193,7 +194,7 @@ def save_frames(title, model_name, rootdir, frames, strip_width=10):
         im.save(f'{outdir}/{test_name}_all.png')
     else:
         print('Too few strips to create grid, creating just strips!')
-    
+
     for ex_num, strip in enumerate(frames[:strip_width]):
         im = Image.fromarray(np.uint8(255*np.hstack(pad_frames(strip))))
         im = im.resize((int(ratio*im.size[0]), int(ratio*im.size[1])), Image.ANTIALIAS)

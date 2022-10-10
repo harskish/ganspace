@@ -6,3 +6,8 @@
 	path = models/stylegan2/stylegan2-pytorch
 	url = https://github.com/harskish/stylegan2-pytorch.git
 	ignore = untracked
+	
+[submodule "stylegan2_ada/stylegan2-ada-pytorch"]
+	path = models/stylegan2_ada/stylegan2-ada-pytorch
+	url = https://github.com/NVlabs/stylegan2-ada-pytorch.git
+	ignore = untracked

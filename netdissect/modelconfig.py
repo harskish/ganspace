@@ -21,7 +21,7 @@ def create_instrumented_model(args, **kwargs):
       gen: True for a generator model.  One-pixel input assumed.
       imgsize: For non-generator models, (y, x) dimensions for RGB input.
       cuda: True to use CUDA.
-  
+
     The constructed model will be decorated with the following attributes:
       input_shape: (usually 4d) tensor shape for single-image input.
       output_shape: 4d tensor shape for output.
